@@ -5,7 +5,7 @@
 
 CPPFLAGS += -Iinclude/
 CPPFLAGS += $(EXTRA_CPPFLAGS)
-CFLAGS += -std=gnu99 -O3 -g -Wall -Werror -march=native -fno-omit-frame-pointer
+CFLAGS += -std=gnu99 -O3 -g -Wall -Werror -march=native -fno-omit-frame-pointer -Wno-address-of-packed-member -Wno-maybe-uninitialized
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS_SHARED += $(CFLAGS) -fPIC
 LDFLAGS += -pthread -g
@@ -25,7 +25,7 @@ INCDIR ?= $(PREFIX)/include
 # Prefix for dpdk
 RTE_SDK ?= /usr/
 # mpdts to compile
-DPDK_PMDS ?= ixgbe i40e tap virtio
+DPDK_PMDS ?= ixgbe i40e tap virtio mlx5
 
 DPDK_CPPFLAGS += -I$(RTE_SDK)/include -I$(RTE_SDK)/include/dpdk \
   -I$(RTE_SDK)/include/x86_64-linux-gnu/dpdk/
@@ -33,6 +33,8 @@ DPDK_LDFLAGS+= -L$(RTE_SDK)/lib/
 DPDK_LDLIBS+= \
   -Wl,--whole-archive \
    $(addprefix -lrte_pmd_,$(DPDK_PMDS)) \
+  -lmlx5 \
+  -libverbs \
   -lrte_eal \
   -lrte_mempool \
   -lrte_mempool_ring \
