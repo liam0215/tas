@@ -1105,6 +1105,7 @@ static inline int parse_options(const struct pkt_tcp *p, uint16_t len,
 
   opts->ts = NULL;
   opts->mss = NULL;
+  opts->ws = NULL;
 
   /* whole header not in buf */
   if (TCPH_HDRLEN(&p->tcp) < 5 || opts_len > (len - sizeof(*p))) {
