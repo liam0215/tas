@@ -115,7 +115,9 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
   fs_lock(fs);
 
   /* if connection has been moved, add to forwarding queue and stop */
+  // check flowgroup -> flow group steering
   new_core = fp_state->flow_group_steering[fs->flow_group];
+  fprintf(stderr, "!! fast_flows_qman: flow group steering: %u, flow group: %u\n", new_core, fs->flow_group);
   if (new_core != ctx->id) {
     /*fprintf(stderr, "fast_flows_qman: arrived on wrong core, forwarding "
         "%u -> %u (fs=%p, fg=%u)\n", ctx->id, new_core, fs, fs->flow_group);*/

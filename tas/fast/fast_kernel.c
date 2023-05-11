@@ -123,11 +123,12 @@ void fast_kernel_packet(struct dataplane_context *ctx,
   len = network_buf_len(nbh);
   dma_write(krx->addr, len, network_buf_bufoff(nbh));
 
+  //TODO: print calculated flow group and fast path core its coming from
   if (network_buf_flowgroup(nbh, &krx->msg.packet.flow_group)) {
     fprintf(stderr, "fast_kernel_packet: network_buf_flowgroup failed\n");
     abort();
   }
-
+  fprintf(stderr, "!! fast_kernel_packet: network_buf_flowgroup assigned flowgroup %u coming from fast path core %u\n", krx->msg.packet.flow_group, ctx->id);
   krx->msg.packet.len = len;
   krx->msg.packet.fn_core = ctx->id;
   MEM_BARRIER();
