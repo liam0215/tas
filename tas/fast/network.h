@@ -187,17 +187,17 @@ static inline uint16_t network_buf_tcpxsums(struct network_buf_handle *bh, uint8
 }
 
 static inline int network_buf_flowgroup(struct network_buf_handle *bh,
-    uint16_t *fg)
+    uint16_t *fg, uint16_t core)
 {
   struct rte_mbuf *mb = (struct rte_mbuf *) bh;
   if (!(mb->ol_flags & PKT_RX_RSS_HASH)) {
-    *fg = 0;
+    *fg = core;
     return 0;
   }
 
   //TODO: Check rss value
   fprintf(stderr, "!! network_buf_flowgroup: rss = %u\n", mb->hash.rss);
-  *fg = mb->hash.rss & (rss_reta_size - 1);
+  *fg = mb->hash.rss & (rss_reta_size - 1); // NOTE: assume rte_is_power_of_2(rss_reta_size)
   return 0;
 }
 
