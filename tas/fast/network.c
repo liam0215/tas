@@ -52,7 +52,7 @@
 uint8_t net_port_id = 0;
 static struct rte_eth_conf port_conf = {
     .rxmode = {
-      .max_rx_pkt_len = 8196,
+      .max_rx_pkt_len = 9000,
       .mq_mode = ETH_MQ_RX_RSS,
       .offloads = (DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM),
       .split_hdr_size = 0
