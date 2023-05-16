@@ -31,8 +31,8 @@
 #include <rte_config.h>
 #include <rte_ether.h>
 
-#define BUFFER_SIZE 2048
-
+// #define BUFFER_SIZE 2048
+#define BUFFER_SIZE 8196
 //#define FLEXNIC_TRACING
 #ifdef FLEXNIC_TRACING
 #   include <tas_trace.h>

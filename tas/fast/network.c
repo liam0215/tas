@@ -45,26 +45,20 @@
 #define PERTHREAD_MBUFS 2048
 #define MBUF_SIZE (BUFFER_SIZE + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 #define RX_DESCRIPTORS 256
-// #define RX_DESCRIPTORS 1024
 #define TX_DESCRIPTORS 128
-// #define TX_DESCRIPTORS 1024
 
 uint8_t net_port_id = 0;
 static struct rte_eth_conf port_conf = {
     .rxmode = {
-      .max_rx_pkt_len = 9000,
       .mq_mode = ETH_MQ_RX_RSS,
-      .offloads = (DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM),
-      .split_hdr_size = 0
+      .offloads = 0
 #if RTE_VER_YEAR < 18
       .ignore_offload_bitfield = 1,
 #endif
     },
     .txmode = {
       .mq_mode = ETH_MQ_TX_NONE,
-      .offloads = (DEV_TX_OFFLOAD_IPV4_CKSUM |
-                     DEV_TX_OFFLOAD_MULTI_SEGS |
-                     DEV_TX_OFFLOAD_TCP_TSO),
+      .offloads = 0,
     },
     .rx_adv_conf = {
       .rss_conf = {
@@ -155,6 +149,16 @@ int network_init(unsigned n_threads)
     port_conf.txmode.offloads =
       DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM;
 
+  /* enable tso and jumbo frames if requested */
+  if (config.fp_tso) {
+    port_conf.txmode.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM |
+                     DEV_TX_OFFLOAD_MULTI_SEGS |
+                     DEV_TX_OFFLOAD_TCP_TSO);
+    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM);
+    port_conf.rxmode.max_rx_pkt_len = 9000;
+    port_conf.rxmode.split_hdr_size = 0;
+  }
+
   /* disable rx interrupts if requested */
   if (!config.fp_interrupts)
     port_conf.intr_conf.rxq = 0;
@@ -183,6 +187,12 @@ int network_init(unsigned n_threads)
   if (config.fp_xsumoffload)
     eth_devinfo.default_txconf.offloads =
       DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM;
+  if (config.fp_tso) {
+    eth_devinfo.default_txconf.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM | \
+                    DEV_TX_OFFLOAD_MULTI_SEGS | \
+                    DEV_TX_OFFLOAD_TCP_TSO);
+    eth_devinfo.default_rxconf.offloads = DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM;
+  }
 
   memcpy(&tas_info->mac_address, &eth_addr, 6);
 
