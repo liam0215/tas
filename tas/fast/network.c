@@ -50,15 +50,18 @@
 uint8_t net_port_id = 0;
 static struct rte_eth_conf port_conf = {
     .rxmode = {
+      .max_rx_pkt_len = 9000,
       .mq_mode = ETH_MQ_RX_RSS,
-      .offloads = 0,
+      .offloads = DEV_RX_OFFLOAD_JUMBO_FRAME,
+      .split_hdr_size = 0
 #if RTE_VER_YEAR < 18
       .ignore_offload_bitfield = 1,
 #endif
     },
     .txmode = {
       .mq_mode = ETH_MQ_TX_NONE,
-      .offloads = 0,
+      .offloads = (DEV_TX_OFFLOAD_IPV4_CKSUM |
+                     DEV_TX_OFFLOAD_MULTI_SEGS),
     },
     .rx_adv_conf = {
       .rss_conf = {
