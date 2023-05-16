@@ -35,8 +35,9 @@
 #include "tcp_common.h"
 
 #define TCP_MSS 1448
+// #define TCP_MSS 8948
 #define TCP_MAX_RTT 100000
-#define TSO_MAX_SIZE 64000
+#define TSO_MAX_SIZE 32000
 
 //#define SKIP_ACK 1
 
@@ -174,7 +175,8 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
   if(config.fp_tso == 0) {
     len = MIN(avail, TCP_MSS);
   } else {
-    len = MIN(avail, TSO_MAX_SIZE);
+    // len = MIN(avail, TSO_MAX_SIZE);
+    len = MIN(avail, TCP_MSS);
   }
 
   /* state snapshot for creating segment */
@@ -897,7 +899,8 @@ static void flow_tx_segment(struct dataplane_context *ctx,
   hdrs_len = sizeof(*p) + optlen;
 
   /* fill headers */
-  p->eth.dest = fs->remote_mac;
+  struct eth_addr temp = fs->remote_mac;
+  p->eth.dest = temp;
   memcpy(&p->eth.src, &eth_addr, ETH_ADDR_LEN);
   p->eth.type = t_beui16(ETH_TYPE_IP);
 
@@ -947,12 +950,14 @@ static void flow_tx_segment(struct dataplane_context *ctx,
 
   /* set segmentation offload if requested */
   if(config.fp_tso == 1) {
-      struct rte_mbuf * restrict mb = (struct rte_mbuf *) nbh;
-      mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
-      mb->l2_len = sizeof(struct eth_hdr);
-      mb->l3_len = sizeof(p->ip);
-      mb->l4_len = sizeof(p->tcp);
-      mb->tso_segsz = TCP_MSS;
+    struct rte_mbuf * restrict mb = (struct rte_mbuf *) nbh;
+    mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
+    mb->tx_offload = ((uint64_t) sizeof(struct eth_hdr)) |
+      ((uint64_t) sizeof(p->ip) << RTE_MBUF_L2_LEN_BITS) |
+      ((uint64_t) sizeof(p->tcp) << (RTE_MBUF_L2_LEN_BITS + RTE_MBUF_L3_LEN_BITS)) |
+      ((uint64_t) TCP_MSS << (RTE_MBUF_L2_LEN_BITS + RTE_MBUF_L3_LEN_BITS + RTE_MBUF_L4_LEN_BITS));
+    p->ip.chksum = 0;
+    p->tcp.chksum = rte_ipv4_phdr_cksum((void *) &p->ip, mb->ol_flags);
   }
 
 #ifdef FLEXNIC_TRACING
