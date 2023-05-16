@@ -196,7 +196,7 @@ static inline int network_buf_flowgroup(struct network_buf_handle *bh,
   }
 
   //TODO: Check rss value
-  fprintf(stderr, "!! network_buf_flowgroup: rss = %u\n", mb->hash.rss);
+  //fprintf(stderr, "!! network_buf_flowgroup: rss = %u\n", mb->hash.rss);
   *fg = mb->hash.rss & (rss_reta_size - 1); // NOTE: assume rte_is_power_of_2(rss_reta_size)
   return 0;
 }

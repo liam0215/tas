@@ -73,6 +73,7 @@ enum cfg_params {
   CP_FP_CORES_MAX,
   CP_FP_NO_INTS,
   CP_FP_NO_XSUMOFFLOAD,
+  CP_FP_NO_TSO,
   CP_FP_NO_AUTOSCALE,
   CP_FP_NO_HUGEPAGES,
   CP_FP_VLAN_STRIP,
@@ -199,6 +200,9 @@ static struct option opts[] = {
     { .name = "fp-no-xsumoffload",
       .has_arg = no_argument,
       .val = CP_FP_NO_XSUMOFFLOAD },
+    { .name = "fp-no-tso",
+      .has_arg = no_argument,
+      .val = CP_FP_NO_TSO },
     { .name = "fp-no-autoscale",
       .has_arg = no_argument,
       .val = CP_FP_NO_AUTOSCALE },
@@ -488,6 +492,9 @@ int config_parse(struct configuration *c, int argc, char *argv[])
       case CP_FP_NO_XSUMOFFLOAD:
         c->fp_xsumoffload = 0;
         break;
+      case CP_FP_NO_TSO:
+        c->fp_tso = 0;
+        break;
       case CP_FP_NO_AUTOSCALE:
         c->fp_autoscale = 0;
         break;
@@ -598,6 +605,7 @@ static int config_defaults(struct configuration *c, char *progname)
   c->fp_cores_max = 1;
   c->fp_interrupts = 1;
   c->fp_xsumoffload = 1;
+  c->fp_tso = 1;
   c->fp_autoscale = 1;
   c->fp_hugepages = 1;
   c->fp_vlan_strip = 0;

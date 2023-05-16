@@ -36,6 +36,7 @@
 
 #define TCP_MSS 1448
 #define TCP_MAX_RTT 100000
+#define TSO_MAX_SIZE 64000
 
 //#define SKIP_ACK 1
 
@@ -117,7 +118,7 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
   /* if connection has been moved, add to forwarding queue and stop */
   // check flowgroup -> flow group steering
   new_core = fp_state->flow_group_steering[fs->flow_group];
-  fprintf(stderr, "!! fast_flows_qman: flow group steering: %u, flow group: %u, current core: %u\n", new_core, fs->flow_group, ctx->id);
+  //fprintf(stderr, "!! fast_flows_qman: flow group steering: %u, flow group: %u, current core: %u\n", new_core, fs->flow_group, ctx->id);
   if (new_core != ctx->id) {
     /*fprintf(stderr, "fast_flows_qman: arrived on wrong core, forwarding "
         "%u -> %u (fs=%p, fg=%u)\n", ctx->id, new_core, fs, fs->flow_group);*/
@@ -170,7 +171,11 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
     ret = -1;
     goto unlock;
   }
-  len = MIN(avail, TCP_MSS);
+  if(config.fp_tso == 0) {
+    len = MIN(avail, TCP_MSS);
+  } else {
+    len = MIN(avail, TSO_MAX_SIZE);
+  }
 
   /* state snapshot for creating segment */
   tx_seq = fs->tx_next_seq;
@@ -939,6 +944,16 @@ static void flow_tx_segment(struct dataplane_context *ctx,
   /* checksums */
   tcp_checksums(nbh, p, fs->local_ip, fs->remote_ip, hdrs_len - offsetof(struct
         pkt_tcp, tcp) + payload);
+
+  /* set segmentation offload if requested */
+  if(config.fp_tso == 1) {
+      struct rte_mbuf * restrict mb = (struct rte_mbuf *) nbh;
+      mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
+      mb->l2_len = sizeof(struct eth_hdr);
+      mb->l3_len = sizeof(p->ip);
+      mb->l4_len = sizeof(p->tcp);
+      mb->tso_segsz = TCP_MSS;
+  }
 
 #ifdef FLEXNIC_TRACING
   struct flextcp_pl_trev_txseg te_txseg = {

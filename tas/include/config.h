@@ -119,6 +119,8 @@ struct configuration {
   uint32_t fp_interrupts;
   /** FP: tcp checksum offload enabled */
   uint32_t fp_xsumoffload;
+  /** FP: tcp segmentation offload enabled */
+  uint32_t fp_tso;
   /** FP: auto scaling enabled */
   uint32_t fp_autoscale;
   /** FP: use huge pages for internal and buffer memory */

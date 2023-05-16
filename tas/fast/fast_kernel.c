@@ -127,7 +127,7 @@ void fast_kernel_packet(struct dataplane_context *ctx,
     fprintf(stderr, "fast_kernel_packet: network_buf_flowgroup failed\n");
     abort();
   }
-  fprintf(stderr, "!! fast_kernel_packet: network_buf_flowgroup assigned flowgroup %u coming from fast path core %u\n", krx->msg.packet.flow_group, ctx->id);
+  //fprintf(stderr, "!! fast_kernel_packet: network_buf_flowgroup assigned flowgroup %u coming from fast path core %u\n", krx->msg.packet.flow_group, ctx->id);
   krx->msg.packet.len = len;
   krx->msg.packet.fn_core = ctx->id;
   MEM_BARRIER();
