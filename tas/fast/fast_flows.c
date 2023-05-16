@@ -34,10 +34,10 @@
 #include "fastemu.h"
 #include "tcp_common.h"
 
-// #define TCP_MSS 1448
-#define TCP_MSS 8144
+#define TCP_MSS 1448
+// #define TCP_MSS 8144
 #define TCP_MAX_RTT 100000
-#define TSO_MAX_SIZE 8196
+#define TSO_MAX_SIZE 32000
 
 //#define SKIP_ACK 1
 
@@ -175,7 +175,7 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
   if(config.fp_tso == 0) {
     len = MIN(avail, TCP_MSS);
   } else {
-    len = MIN(avail, TCP_MSS);
+    len = MIN(avail, TSO_MAX_SIZE);
     // len = MIN(avail, TCP_MSS);
   }
 
