@@ -63,7 +63,8 @@ static struct rte_eth_conf port_conf = {
     .txmode = {
       .mq_mode = ETH_MQ_TX_NONE,
       .offloads = (DEV_TX_OFFLOAD_IPV4_CKSUM |
-                     DEV_TX_OFFLOAD_MULTI_SEGS),
+                     DEV_TX_OFFLOAD_MULTI_SEGS |
+                     DEV_TX_OFFLOAD_TCP_TSO),
     },
     .rx_adv_conf = {
       .rss_conf = {
