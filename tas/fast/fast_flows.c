@@ -37,7 +37,7 @@
 #define TCP_MSS 1448
 // #define TCP_MSS 8144
 #define TCP_MAX_RTT 100000
-#define TSO_MAX_SIZE 32000
+#define TSO_MAX_SIZE 32768
 
 //#define SKIP_ACK 1
 
