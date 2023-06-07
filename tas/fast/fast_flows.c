@@ -954,8 +954,9 @@ static void flow_tx_segment(struct dataplane_context *ctx,
     mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
     mb->tx_offload = ((uint64_t) sizeof(struct eth_hdr)) |
       ((uint64_t) sizeof(p->ip) << RTE_MBUF_L2_LEN_BITS) |
-      ((uint64_t) sizeof(p->tcp) << (RTE_MBUF_L2_LEN_BITS + RTE_MBUF_L3_LEN_BITS)) |
+      ((uint64_t) (sizeof(p->tcp) + optlen) << (RTE_MBUF_L2_LEN_BITS + RTE_MBUF_L3_LEN_BITS)) |
       ((uint64_t) TCP_MSS << (RTE_MBUF_L2_LEN_BITS + RTE_MBUF_L3_LEN_BITS + RTE_MBUF_L4_LEN_BITS));
+    mb->tso_segsz = TCP_MSS;
     p->ip.chksum = 0;
     p->tcp.chksum = rte_ipv4_phdr_cksum((void *) &p->ip, mb->ol_flags);
   }
