@@ -39,7 +39,6 @@
 #include "internal.h"
 
 #define TCP_MSS 1448
-// #define TCP_MSS 8144
 #define TCP_HTSIZE 4096
 
 #define PORT_MAX ((1u << 16) - 1)
