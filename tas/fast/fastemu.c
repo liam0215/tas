@@ -279,20 +279,20 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
   STATS_ADD(ctx, rx_total, n);
   n = ret;
 
-  // if(config.fp_tso) {
-  //   struct rte_mbuf **mbs = (struct rte_mbuf **) bhs;
-  //   for(i = 0; i < n; i++) {
-  //     mbs[i]->l2_len = sizeof(struct eth_hdr); 
-  //     mbs[i]->l3_len = sizeof(struct ip_hdr);
-  //     mbs[i]->l4_len = sizeof(struct tcp_hdr);
-  //     mbs[i]->packet_type = RTE_PTYPE_L4_TCP;
-  //   }
-  //   struct rte_gro_param gro_param;
-  //   gro_param.gro_types = RTE_GRO_TCP_IPV4;
-  //   gro_param.max_flow_num = 1;
-  //   gro_param.max_item_per_flow = RTE_GRO_MAX_BURST_ITEM_NUM;
-  //   n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
-  // }
+  if(config.fp_tso) {
+    struct rte_mbuf **mbs = (struct rte_mbuf **) bhs;
+    for(i = 0; i < n; i++) {
+      mbs[i]->l2_len = sizeof(struct eth_hdr); 
+      mbs[i]->l3_len = sizeof(struct ip_hdr);
+      mbs[i]->l4_len = sizeof(struct tcp_hdr);
+      mbs[i]->packet_type = RTE_PTYPE_L4_TCP;
+    }
+    struct rte_gro_param gro_param;
+    gro_param.gro_types = RTE_GRO_TCP_IPV4;
+    gro_param.max_flow_num = 1;
+    gro_param.max_item_per_flow = RTE_GRO_MAX_BURST_ITEM_NUM;
+    n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
+  }
 
   /* prefetch packet contents (1st cache line) */
   for (i = 0; i < n; i++) {
