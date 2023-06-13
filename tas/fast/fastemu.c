@@ -294,6 +294,8 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
     n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
     if(ret != n) {
       fprintf(stderr, "successfully merging, r: %d, n: %u \n", ret, n);
+    } else if(ret == n && ret != 1) {
+      fprintf(stderr, "failed to merge, r: %d, n: %u \n", ret, n);
     }
   }
 
