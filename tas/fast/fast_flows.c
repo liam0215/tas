@@ -922,7 +922,8 @@ static void flow_tx_segment(struct dataplane_context *ctx,
   p->tcp.dest = fs->remote_port;
   p->tcp.seqno = t_beui32(seq);
   p->tcp.ackno = t_beui32(ack);
-  TCPH_HDRLEN_FLAGS_SET(&p->tcp, 5 + optlen / 4, TCP_PSH | TCP_ACK | fin_fl);
+  //TCPH_HDRLEN_FLAGS_SET(&p->tcp, 5 + optlen / 4, TCP_PSH | TCP_ACK | fin_fl);
+  TCPH_HDRLEN_FLAGS_SET(&p->tcp, 5 + optlen / 4, TCP_ACK | fin_fl);
   p->tcp.wnd = t_beui16(MIN(0xFFFF, rxwnd >> window_scale));
   p->tcp.chksum = 0;
   p->tcp.urgp = t_beui16(0);
