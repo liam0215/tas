@@ -1017,7 +1017,7 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
   p->ip._tos = 0;
   p->ip.len = t_beui16(len - offsetof(struct pkt_tcp, ip));
   p->ip.id = t_beui16(3); /* TODO: not sure why we have 3 here */
-  p->ip.offset = t_beui16(0);
+  p->ip.fl_off = t_beui16(0);
   p->ip.ttl = 0xff;
   p->ip.proto = IP_PROTO_TCP;
   p->ip.chksum = 0;

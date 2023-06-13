@@ -904,7 +904,8 @@ static void flow_tx_segment(struct dataplane_context *ctx,
   p->ip._tos = 0;
   p->ip.len = t_beui16(hdrs_len - offsetof(struct pkt_tcp, ip) + payload);
   p->ip.id = t_beui16(3); /* TODO: not sure why we have 3 here */
-  p->ip.offset = t_beui16(0);
+  p->ip.fl_off = t_beui16(0);
+  IPH_DF_SET(&p->ip, 1);
   p->ip.ttl = 0xff;
   p->ip.proto = IP_PROTO_TCP;
   p->ip.chksum = 0;
