@@ -284,7 +284,7 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
     for(i = 0; i < n; i++) {
       mbs[i]->l2_len = sizeof(struct eth_hdr); 
       mbs[i]->l3_len = sizeof(struct ip_hdr);
-      mbs[i]->l4_len = sizeof(struct tcp_hdr);
+      mbs[i]->l4_len = sizeof(struct tcp_hdr) + 12;
       mbs[i]->packet_type = RTE_PTYPE_L4_TCP;
     }
     struct rte_gro_param gro_param;
