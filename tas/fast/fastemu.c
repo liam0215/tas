@@ -284,16 +284,16 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
     for(i = 0; i < n; i++) {
       mbs[i]->l2_len = sizeof(struct eth_hdr); 
       mbs[i]->l3_len = sizeof(struct ip_hdr);
-      mbs[i]->l4_len = sizeof(struct tcp_hdr);
+      mbs[i]->l4_len = 32;
       mbs[i]->outer_l2_len = 0;
       mbs[i]->outer_l3_len = 0;
       mbs[i]->packet_type = RTE_PTYPE_L4_TCP;
     }
     struct rte_gro_param gro_param;
     gro_param.gro_types = RTE_GRO_TCP_IPV4;
-    gro_param.max_flow_num = 16;
-    gro_param.max_item_per_flow = RTE_GRO_MAX_BURST_ITEM_NUM / 16;
-    n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
+    gro_param.max_flow_num = 8;
+    gro_param.max_item_per_flow = RTE_GRO_MAX_BURST_ITEM_NUM / gro_param.max_flow_num;
+    n = rte_gro_reassemble_burst(mbs, ret, &gro_param);
     if(ret != n) {
       fprintf(stderr, "successfully merging, r: %d, n: %u \n", ret, n);
     }
