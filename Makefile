@@ -43,6 +43,7 @@ DPDK_LDLIBS+= \
   -lrte_kvargs \
   -lrte_ethdev \
   -lrte_mbuf \
+  -lrte_gro \
   -lnuma \
   -lrte_bus_pci \
   -lrte_pci \
