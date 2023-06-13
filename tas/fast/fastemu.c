@@ -287,16 +287,13 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
       mbs[i]->l4_len = 32;
       mbs[i]->outer_l2_len = 0;
       mbs[i]->outer_l3_len = 0;
-      mbs[i]->packet_type = RTE_PTYPE_L4_TCP;
+      mbs[i]->packet_type = RTE_PTYPE_L4_TCP | RTE_PTYPE_L3_IPV4;
     }
     struct rte_gro_param gro_param;
     gro_param.gro_types = RTE_GRO_TCP_IPV4;
     gro_param.max_flow_num = 8;
-    gro_param.max_item_per_flow = RTE_GRO_MAX_BURST_ITEM_NUM / gro_param.max_flow_num;
+    gro_param.max_item_per_flow = 16;
     n = rte_gro_reassemble_burst(mbs, ret, &gro_param);
-    if(ret != n) {
-      fprintf(stderr, "successfully merging, r: %d, n: %u \n", ret, n);
-    }
   }
 
   /* prefetch packet contents (1st cache line) */
