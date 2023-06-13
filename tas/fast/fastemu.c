@@ -284,7 +284,7 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
     for(i = 0; i < n; i++) {
       mbs[i]->l2_len = sizeof(struct eth_hdr); 
       mbs[i]->l3_len = sizeof(struct ip_hdr);
-      mbs[i]->l4_len = 32;
+      mbs[i]->l4_len = sizeof(struct tcp_hdr);
       mbs[i]->outer_l2_len = 0;
       mbs[i]->outer_l3_len = 0;
       mbs[i]->packet_type = RTE_PTYPE_L4_TCP | RTE_PTYPE_L3_IPV4;
