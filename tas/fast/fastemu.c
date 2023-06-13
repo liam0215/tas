@@ -292,8 +292,9 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
     gro_param.max_flow_num = 1;
     gro_param.max_item_per_flow = RTE_GRO_MAX_BURST_ITEM_NUM;
     n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
-    if(ret != n)
-      fprintf(stderr, "successfully merging\n");
+    if(ret != n) {
+      fprintf(stderr, "successfully merging, r: %d, n: %u \n", ret, n);
+    }
   }
 
   /* prefetch packet contents (1st cache line) */
