@@ -489,7 +489,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
           mb = mb->next;
         }
         flow_rx_seq_write(fs, seq, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
-        temp_payload_bytes -= mb->data_len - temp_payload_off;
+        temp_payload_bytes -= MIN(mb->data_len - temp_payload_off, temp_payload_bytes);
         mb = mb->next;
         while(temp_payload_bytes > 0) {
           flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
@@ -514,7 +514,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
           mb = mb->next;
         }
         flow_rx_seq_write(fs, seq, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
-        temp_payload_bytes -= mb->data_len - temp_payload_off;
+        temp_payload_bytes -= MIN(mb->data_len - temp_payload_off, temp_payload_bytes);
         mb = mb->next;
         while(temp_payload_bytes > 0) {
           flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
@@ -538,7 +538,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
           mb = mb->next;
         }
         flow_rx_seq_write(fs, seq, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
-        temp_payload_bytes -= mb->data_len - temp_payload_off;
+        temp_payload_bytes -= MIN(mb->data_len - temp_payload_off, temp_payload_bytes);
         mb = mb->next;
         while(temp_payload_bytes > 0) {
           flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
@@ -624,7 +624,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
         mb = mb->next;
       }
       flow_rx_write(fs, fs->rx_next_pos, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
-      temp_payload_bytes -= mb->data_len - temp_payload_off;
+      temp_payload_bytes -= MIN(mb->data_len - temp_payload_off, temp_payload_bytes);
       mb = mb->next;
       while(temp_payload_bytes > 0) {
         if(fs->rx_next_pos + (payload_bytes - temp_payload_bytes) >= fs->rx_len) {
