@@ -243,7 +243,27 @@ void fast_flows_packet_parse(struct dataplane_context *ctx,
       continue;
 
     p = network_buf_bufoff(nbhs[i]);
-    len = network_buf_len(nbhs[i]);
+    // len = network_buf_len(nbhs[i]);
+    len = ((struct rte_mbuf *) nbhs[i])->pkt_len;
+
+    if(len < sizeof(*p))
+      fprintf(stderr, "first");
+    if(f_beui16(p->eth.type) != ETH_TYPE_IP)
+      fprintf(stderr, "second");
+    if(p->ip.proto != IP_PROTO_TCP)
+      fprintf(stderr, "third");
+    if(IPH_V(&p->ip) != 4)
+      fprintf(stderr, "fourth");
+    if(IPH_HL(&p->ip) != 5)
+      fprintf(stderr, "fifth");
+    if(TCPH_HDRLEN(&p->tcp) < 5)
+      fprintf(stderr, "sixth");
+    if(len < f_beui16(p->ip.len) + sizeof(p->eth))
+      fprintf(stderr, "seventh");
+    if(tcp_parse_options(p, len, &tos[i]) != 0)
+      fprintf(stderr, "eighth");
+    if(tos[i].ts == NULL)
+      fprintf(stderr, "ninth");
 
     int cond =
         (len < sizeof(*p)) |
@@ -432,8 +452,20 @@ int fast_flows_packet(struct dataplane_context *ctx,
   /* trim payload to what we can actually use */
   payload_bytes -= trim_start + trim_end;
   payload_off += trim_start;
-  payload = (uint8_t *) p + payload_off;
   seq += trim_start;
+
+  if(config.fp_tso) {
+    // Find the segment corresponding to the offset
+    uint32_t temp_payload_off = payload_off;
+    struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+    while(temp_payload_off >= mb->data_len && payload_bytes > 0) {
+      temp_payload_off -= mb->data_len;
+      mb = mb->next;
+    }
+    payload = (uint8_t *) mb->buf_addr + mb->data_off + temp_payload_off;
+  } else {
+    payload = (uint8_t *) p + payload_off;
+  }
 
   /* handle out of order segment */
   if (UNLIKELY(seq != fs->rx_next_seq)) {
@@ -448,20 +480,74 @@ int fast_flows_packet(struct dataplane_context *ctx,
     if (fs->rx_ooo_len == 0) {
       fs->rx_ooo_start = seq;
       fs->rx_ooo_len = payload_bytes;
-      flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      if(config.fp_tso) {
+        uint32_t temp_payload_off = payload_off;
+        uint32_t temp_payload_bytes = payload_bytes;
+        struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+        while(temp_payload_off >= mb->data_len && mb->next != NULL) {
+          temp_payload_off -= mb->data_len;
+          mb = mb->next;
+        }
+        flow_rx_seq_write(fs, seq, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
+        temp_payload_bytes -= mb->data_len - temp_payload_off;
+        mb = mb->next;
+        while(temp_payload_bytes > 0) {
+          flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
+          temp_payload_bytes -= mb->data_len;
+          mb = mb->next;
+        }
+      } else {
+        flow_rx_seq_write(fs, seq, payload_bytes, payload); 
+      }
       /*fprintf(stderr, "created OOO interval (%p start=%u len=%u)\n",
           fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
     } else if (seq + payload_bytes == fs->rx_ooo_start) {
       /* TODO: those two overlap checks should be more sophisticated */
       fs->rx_ooo_start = seq;
       fs->rx_ooo_len += payload_bytes;
-      flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      if(config.fp_tso) {
+        uint32_t temp_payload_off = payload_off;
+        uint32_t temp_payload_bytes = payload_bytes;
+        struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+        while(temp_payload_off >= mb->data_len && mb->next != NULL) {
+          temp_payload_off -= mb->data_len;
+          mb = mb->next;
+        }
+        flow_rx_seq_write(fs, seq, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
+        temp_payload_bytes -= mb->data_len - temp_payload_off;
+        mb = mb->next;
+        while(temp_payload_bytes > 0) {
+          flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
+          temp_payload_bytes -= mb->data_len;
+          mb = mb->next;
+        }
+      } else {
+        flow_rx_seq_write(fs, seq, payload_bytes, payload); 
+      }
       /*fprintf(stderr, "extended OOO interval (%p start=%u len=%u)\n",
           fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
     } else if (fs->rx_ooo_start + fs->rx_ooo_len == seq) {
       /* TODO: those two overlap checks should be more sophisticated */
       fs->rx_ooo_len += payload_bytes;
-      flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      if(config.fp_tso) {
+        uint32_t temp_payload_off = payload_off;
+        uint32_t temp_payload_bytes = payload_bytes;
+        struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+        while(temp_payload_off >= mb->data_len && mb->next != NULL) {
+          temp_payload_off -= mb->data_len;
+          mb = mb->next;
+        }
+        flow_rx_seq_write(fs, seq, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
+        temp_payload_bytes -= mb->data_len - temp_payload_off;
+        mb = mb->next;
+        while(temp_payload_bytes > 0) {
+          flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
+          temp_payload_bytes -= mb->data_len;
+          mb = mb->next;
+        }
+      } else {
+        flow_rx_seq_write(fs, seq, payload_bytes, payload); 
+      }
       /*fprintf(stderr, "extended OOO interval (%p start=%u len=%u)\n",
           fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
     } else {
@@ -487,7 +573,19 @@ int fast_flows_packet(struct dataplane_context *ctx,
   /* trim payload to what we can actually use */
   payload_bytes -= trim_start + trim_end;
   payload_off += trim_start;
-  payload = (uint8_t *) p + payload_off;
+
+  if(config.fp_tso) {
+    // Find the segment corresponding to the offset
+    uint32_t temp_payload_off = payload_off;
+    struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+    while(temp_payload_off > mb->data_len) {
+      temp_payload_off -= mb->data_len;
+      mb = mb->next;
+    }
+    payload = (uint8_t *) mb->buf_addr + mb->data_off + temp_payload_off;
+  } else {
+    payload = (uint8_t *) p + payload_off;
+  }
 #endif
 
   /* update rtt estimate */
@@ -517,7 +615,29 @@ int fast_flows_packet(struct dataplane_context *ctx,
 
   /* if there is payload, dma it to the receive buffer */
   if (payload_bytes > 0) {
-    flow_rx_write(fs, fs->rx_next_pos, payload_bytes, payload);
+    if(config.fp_tso) {
+      uint32_t temp_payload_off = payload_off;
+      uint32_t temp_payload_bytes = payload_bytes;
+      struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+      while(temp_payload_off >= mb->data_len) {
+        temp_payload_off -= mb->data_len;
+        mb = mb->next;
+      }
+      flow_rx_write(fs, fs->rx_next_pos, MIN(mb->data_len - temp_payload_off, temp_payload_bytes), payload);
+      temp_payload_bytes -= mb->data_len - temp_payload_off;
+      mb = mb->next;
+      while(temp_payload_bytes > 0) {
+        if(fs->rx_next_pos + (payload_bytes - temp_payload_bytes) >= fs->rx_len) {
+          flow_rx_write(fs, fs->rx_next_pos + (payload_bytes - temp_payload_bytes) - fs->rx_len, MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
+        } else {
+          flow_rx_write(fs, fs->rx_next_pos + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
+        }
+        temp_payload_bytes -= mb->data_len;
+        mb = mb->next;
+      }
+    } else {
+      flow_rx_write(fs, fs->rx_next_pos, payload_bytes, payload);
+    }
 
     rx_bump = payload_bytes;
     fs->rx_avail -= payload_bytes;
@@ -526,7 +646,9 @@ int fast_flows_packet(struct dataplane_context *ctx,
       fs->rx_next_pos -= fs->rx_len;
     }
     assert(fs->rx_next_pos < fs->rx_len);
+    // fprintf(stderr, "next seq before updating %u\n", fs->rx_next_seq);
     fs->rx_next_seq += payload_bytes;
+    // fprintf(stderr, "next seq after updating %u\n", fs->rx_next_seq);
 #ifndef SKIP_ACK
     trigger_ack = 1;
 #endif
@@ -857,7 +979,7 @@ static void flow_rx_write(struct flextcp_pl_flowst *fs, uint32_t pos,
 {
   uint32_t part;
   uint64_t rx_base = fs->rx_base_sp & FLEXNIC_PL_FLOWST_RX_MASK;
-
+  assert(pos <= fs->rx_len);
   if (LIKELY(pos + len <= fs->rx_len)) {
     dma_write(rx_base + pos, len, src);
   } else {
@@ -923,7 +1045,7 @@ static void flow_tx_segment(struct dataplane_context *ctx,
   p->tcp.dest = fs->remote_port;
   p->tcp.seqno = t_beui32(seq);
   p->tcp.ackno = t_beui32(ack);
-  //TCPH_HDRLEN_FLAGS_SET(&p->tcp, 5 + optlen / 4, TCP_PSH | TCP_ACK | fin_fl);
+  // TCPH_HDRLEN_FLAGS_SET(&p->tcp, 5 + optlen / 4, TCP_PSH | TCP_ACK | fin_fl);
   TCPH_HDRLEN_FLAGS_SET(&p->tcp, 5 + optlen / 4, TCP_ACK | fin_fl);
   p->tcp.wnd = t_beui16(MIN(0xFFFF, rxwnd >> window_scale));
   p->tcp.chksum = 0;
@@ -947,7 +1069,7 @@ static void flow_tx_segment(struct dataplane_context *ctx,
         pkt_tcp, tcp) + payload);
 
   /* set segmentation offload if requested */
-  if(config.fp_tso == 1 && payload > TCP_MSS) {
+  if(config.fp_tso && payload > TCP_MSS) {
     struct rte_mbuf * restrict mb = (struct rte_mbuf *) nbh;
     mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
     mb->tx_offload = ((uint64_t) sizeof(struct eth_hdr)) |
@@ -1048,7 +1170,10 @@ static void flow_tx_ack(struct dataplane_context *ctx, uint32_t seq,
     };
   trace_event(FLEXNIC_PL_TREV_TXACK, sizeof(te_txack), &te_txack);
 #endif
-
+  // fprintf(stderr, "about to send ack with seq=%u ack=%u\n", seq, ack);
+  // if(ack > 200000) {
+  //   exit(1);
+  // }
   tx_send(ctx, nbh, network_buf_off(nbh), hdrlen);
 }
 
