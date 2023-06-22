@@ -493,7 +493,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
         mb = mb->next;
         while(temp_payload_bytes > 0) {
           flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
-          temp_payload_bytes -= mb->data_len;
+          temp_payload_bytes -= MIN(mb->data_len, temp_payload_bytes);
           mb = mb->next;
         }
       } else {
@@ -518,7 +518,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
         mb = mb->next;
         while(temp_payload_bytes > 0) {
           flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
-          temp_payload_bytes -= mb->data_len;
+          temp_payload_bytes -= MIN(mb->data_len, temp_payload_bytes);
           mb = mb->next;
         }
       } else {
@@ -542,7 +542,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
         mb = mb->next;
         while(temp_payload_bytes > 0) {
           flow_rx_seq_write(fs, seq + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
-          temp_payload_bytes -= mb->data_len;
+          temp_payload_bytes -= MIN(mb->data_len, temp_payload_bytes);
           mb = mb->next;
         }
       } else {
@@ -632,7 +632,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
         } else {
           flow_rx_write(fs, fs->rx_next_pos + (payload_bytes - temp_payload_bytes), MIN(mb->data_len, temp_payload_bytes), (uint8_t *) mb->buf_addr + mb->data_off);
         }
-        temp_payload_bytes -= mb->data_len;
+        temp_payload_bytes -= MIN(mb->data_len, temp_payload_bytes);
         mb = mb->next;
       }
     } else {
