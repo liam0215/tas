@@ -149,13 +149,12 @@ int network_init(unsigned n_threads)
     port_conf.txmode.offloads =
       DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM;
 
-  /* enable tso and jumbo frames if requested */
+  /* enable tso if requested */
   if (config.fp_tso) {
     port_conf.txmode.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM |
                      DEV_TX_OFFLOAD_MULTI_SEGS |
                      DEV_TX_OFFLOAD_TCP_TSO);
-    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM);
-    port_conf.rxmode.max_rx_pkt_len = 9000;
+    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM);
     port_conf.rxmode.split_hdr_size = 0;
   }
 

@@ -45,6 +45,7 @@ int network_rx_interrupt_ctl(struct network_thread *t, int turnon);
 int network_scale_up(uint16_t old, uint16_t new);
 int network_scale_down(uint16_t old, uint16_t new);
 
+void network_dump_stats(void);
 
 static inline void network_buf_reset(struct network_buf_handle *bh)
 {
@@ -84,6 +85,11 @@ static inline void network_buf_setlen(struct network_buf_handle *bh,
 {
   struct rte_mbuf *mb = (struct rte_mbuf *) bh;
   mb->pkt_len = mb->data_len = len;
+  if(mb->nb_segs > 1) {
+    mb->next->nb_segs = mb->nb_segs - 1;
+    rte_pktmbuf_free(mb->next);
+  }
+  mb->nb_segs = 1;
 }
 
 
@@ -149,7 +155,7 @@ static inline void network_free(unsigned num, struct network_buf_handle **bufs)
 {
   unsigned i;
   for (i = 0; i < num; i++) {
-    rte_pktmbuf_free_seg((struct rte_mbuf *) bufs[i]);
+    rte_pktmbuf_free((struct rte_mbuf *) bufs[i]);
   }
 }
 

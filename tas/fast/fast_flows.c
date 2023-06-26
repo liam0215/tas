@@ -1081,6 +1081,17 @@ static void flow_tx_segment(struct dataplane_context *ctx,
     p->tcp.chksum = rte_ipv4_phdr_cksum((void *) &p->ip, mb->ol_flags);
   }
 
+  if(seq > 10000000 && seq < 10035000) {
+    network_dump_stats();
+    struct rte_eth_xstat_name stats_names[128];
+    struct rte_eth_xstat stats[128];
+    int n = rte_eth_xstats_get_names(0, stats_names, 128);
+    n = MIN(n, rte_eth_xstats_get(0, stats, 128));
+    for(int i = 0; i < n; i++) {
+      printf("%s: %lu\n", stats_names[stats[i].id].name, stats[i].value);
+    }
+  }
+
 #ifdef FLEXNIC_TRACING
   struct flextcp_pl_trev_txseg te_txseg = {
       .local_ip = f_beui32(p->ip.src),
