@@ -296,7 +296,7 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
 
     struct rte_gro_param gro_param;
     gro_param.gro_types = RTE_GRO_TCP_IPV4;
-    gro_param.max_flow_num = 8;
+    gro_param.max_flow_num = 16;
     gro_param.max_item_per_flow = 16;
     n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
   } else {

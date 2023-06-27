@@ -154,8 +154,9 @@ int network_init(unsigned n_threads)
     port_conf.txmode.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM |
                      DEV_TX_OFFLOAD_MULTI_SEGS |
                      DEV_TX_OFFLOAD_TCP_TSO);
-    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM);
+    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_TCP_LRO);
     port_conf.rxmode.split_hdr_size = 0;
+    port_conf.rxmode.max_lro_pkt_size = BUFFER_SIZE;
   }
 
   /* disable rx interrupts if requested */
