@@ -191,7 +191,7 @@ int network_init(unsigned n_threads)
     eth_devinfo.default_txconf.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM | \
                     DEV_TX_OFFLOAD_MULTI_SEGS | \
                     DEV_TX_OFFLOAD_TCP_TSO);
-    eth_devinfo.default_rxconf.offloads = DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM;
+    eth_devinfo.default_rxconf.offloads = DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_TCP_LRO;
   }
 
   memcpy(&tas_info->mac_address, &eth_addr, 6);
