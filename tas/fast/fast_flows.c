@@ -1053,7 +1053,12 @@ static void flow_tx_segment(struct dataplane_context *ctx,
 
   /* fill in timestamp option */
   memset(p + 1, 0, optlen);
-  opt_ts = (struct tcp_timestamp_opt *) (p + 1);
+  uint8_t *opt = (uint8_t *) (p + 1);
+  opt[0] = 1;
+  opt += 1;
+  opt[0] = 1;
+  opt_ts = (struct tcp_timestamp_opt *) (opt + 1);
+  // opt_ts = (struct tcp_timestamp_opt *) (p + 1);
   opt_ts->kind = TCP_OPT_TIMESTAMP;
   opt_ts->length = sizeof(*opt_ts);
   opt_ts->ts_val = t_beui32(ts_my);
