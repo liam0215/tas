@@ -154,9 +154,10 @@ int network_init(unsigned n_threads)
     port_conf.txmode.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM |
                      DEV_TX_OFFLOAD_MULTI_SEGS |
                      DEV_TX_OFFLOAD_TCP_TSO);
-    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_TCP_LRO);
+    port_conf.rxmode.offloads = (DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_TCP_LRO);
     port_conf.rxmode.split_hdr_size = 0;
-    port_conf.rxmode.max_lro_pkt_size = BUFFER_SIZE;
+    port_conf.rxmode.max_lro_pkt_size = 32768;
+    port_conf.rxmode.max_rx_pkt_len = 9000;
   }
 
   /* disable rx interrupts if requested */
@@ -191,7 +192,10 @@ int network_init(unsigned n_threads)
     eth_devinfo.default_txconf.offloads |= (DEV_TX_OFFLOAD_IPV4_CKSUM | \
                     DEV_TX_OFFLOAD_MULTI_SEGS | \
                     DEV_TX_OFFLOAD_TCP_TSO);
-    eth_devinfo.default_rxconf.offloads = DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_TCP_LRO;
+    eth_devinfo.default_rxconf.offloads = DEV_RX_OFFLOAD_JUMBO_FRAME | DEV_RX_OFFLOAD_SCATTER | DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_TCP_LRO;
+    eth_devinfo.max_lro_pkt_size = 32768;
+    eth_devinfo.max_rx_pktlen = 9000;
+    eth_devinfo.max_mtu = 9000;
   }
 
   memcpy(&tas_info->mac_address, &eth_addr, 6);

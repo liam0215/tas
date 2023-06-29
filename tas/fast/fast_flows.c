@@ -247,7 +247,7 @@ void fast_flows_packet_parse(struct dataplane_context *ctx,
     len = ((struct rte_mbuf *) nbhs[i])->pkt_len;
 
     if(len < sizeof(*p))
-      fprintf(stderr, "first");
+      fprintf(stderr, "first: %u\n", len);
     if(f_beui16(p->eth.type) != ETH_TYPE_IP)
       fprintf(stderr, "second");
     if(p->ip.proto != IP_PROTO_TCP)
@@ -259,7 +259,7 @@ void fast_flows_packet_parse(struct dataplane_context *ctx,
     if(TCPH_HDRLEN(&p->tcp) < 5)
       fprintf(stderr, "sixth");
     if(len < f_beui16(p->ip.len) + sizeof(p->eth))
-      fprintf(stderr, "seventh");
+      fprintf(stderr, "seventh: %u\n", len);
     if(tcp_parse_options(p, len, &tos[i]) != 0)
       fprintf(stderr, "eighth");
     if(tos[i].ts == NULL)
