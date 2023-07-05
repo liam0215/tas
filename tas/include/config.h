@@ -121,6 +121,10 @@ struct configuration {
   uint32_t fp_xsumoffload;
   /** FP: tcp segmentation offload enabled */
   uint32_t fp_tso;
+  /** FP: generic receive offload enabled */
+  uint32_t fp_gro;
+  /** FP: large receive offload enabled */
+  uint32_t fp_lro;
   /** FP: auto scaling enabled */
   uint32_t fp_autoscale;
   /** FP: use huge pages for internal and buffer memory */

@@ -280,33 +280,29 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
   n = ret;
 
   /* prefetch packet contents (1st cache line) */
-  // if(config.fp_tso) {
-  //   struct rte_mbuf *mb;
-  //   for (i = 0; i < n; i++) {
-  //     mb = (struct rte_mbuf *) bhs[i];
-  //     mb->l2_len = sizeof(struct eth_hdr);
-  //     mb->l3_len = sizeof(struct ip_hdr);
-  //     struct pkt_tcp *p = mb->buf_addr + mb->data_off;
-  //     mb->l4_len = TCPH_HDRLEN(&p->tcp) * 4;
-  //     mb->outer_l2_len = 0;
-  //     mb->outer_l3_len = 0;
-  //     mb->packet_type = RTE_PTYPE_L4_TCP | RTE_PTYPE_L3_IPV4;
-  //     rte_prefetch0(network_buf_bufoff(bhs[i]));
-  //   }
+  if(config.fp_gro) {
+    struct rte_mbuf *mb;
+    for (i = 0; i < n; i++) {
+      mb = (struct rte_mbuf *) bhs[i];
+      mb->l2_len = sizeof(struct eth_hdr);
+      mb->l3_len = sizeof(struct ip_hdr);
+      struct pkt_tcp *p = mb->buf_addr + mb->data_off;
+      mb->l4_len = TCPH_HDRLEN(&p->tcp) * 4;
+      mb->outer_l2_len = 0;
+      mb->outer_l3_len = 0;
+      mb->packet_type = RTE_PTYPE_L4_TCP | RTE_PTYPE_L3_IPV4;
+      rte_prefetch0(network_buf_bufoff(bhs[i]));
+    }
 
-  //   struct rte_gro_param gro_param;
-  //   gro_param.gro_types = RTE_GRO_TCP_IPV4;
-  //   gro_param.max_flow_num = 16;
-  //   gro_param.max_item_per_flow = 16;
-  //   n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
-  // } else {
-  //   for(i = 0; i < n; i++) {
-  //     rte_prefetch0(network_buf_bufoff(bhs[i]));
-  //   }
-  // }
-
-  for(i = 0; i < n; i++) {
-    rte_prefetch0(network_buf_bufoff(bhs[i]));
+    struct rte_gro_param gro_param;
+    gro_param.gro_types = RTE_GRO_TCP_IPV4;
+    gro_param.max_flow_num = 16;
+    gro_param.max_item_per_flow = 16;
+    n = rte_gro_reassemble_burst((struct rte_mbuf **) bhs, ret, &gro_param);
+  } else {
+    for(i = 0; i < n; i++) {
+      rte_prefetch0(network_buf_bufoff(bhs[i]));
+    }
   }
   
 

@@ -34,8 +34,7 @@
 #include "fastemu.h"
 #include "tcp_common.h"
 
-// #define TCP_MSS 1448
-#define TCP_MSS 8948
+#define TCP_MSS 1448
 #define TCP_MAX_RTT 100000
 #define TSO_MAX_SIZE 32768
 
@@ -170,10 +169,10 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
     ret = -1;
     goto unlock;
   }
-  if(config.fp_tso == 0) {
-    len = MIN(avail, TCP_MSS);
-  } else {
+  if(config.fp_tso) {
     len = MIN(avail, TSO_MAX_SIZE);
+  } else {
+    len = MIN(avail, TCP_MSS);
   }
 
   /* state snapshot for creating segment */
@@ -455,7 +454,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
   payload_off += trim_start;
   seq += trim_start;
 
-  if(config.fp_tso) {
+  if(config.fp_gro || config.fp_lro) {
     // Find the segment corresponding to the offset
     uint32_t temp_payload_off = payload_off;
     struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
@@ -481,7 +480,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
     if (fs->rx_ooo_len == 0) {
       fs->rx_ooo_start = seq;
       fs->rx_ooo_len = payload_bytes;
-      if(config.fp_tso) {
+      if(config.fp_gro || config.fp_lro) {
         uint32_t temp_payload_off = payload_off;
         uint32_t temp_payload_bytes = payload_bytes;
         struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
@@ -506,7 +505,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
       /* TODO: those two overlap checks should be more sophisticated */
       fs->rx_ooo_start = seq;
       fs->rx_ooo_len += payload_bytes;
-      if(config.fp_tso) {
+      if(config.fp_gro || config.fp_lro) {
         uint32_t temp_payload_off = payload_off;
         uint32_t temp_payload_bytes = payload_bytes;
         struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
@@ -530,7 +529,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
     } else if (fs->rx_ooo_start + fs->rx_ooo_len == seq) {
       /* TODO: those two overlap checks should be more sophisticated */
       fs->rx_ooo_len += payload_bytes;
-      if(config.fp_tso) {
+      if(config.fp_gro || config.fp_lro) {
         uint32_t temp_payload_off = payload_off;
         uint32_t temp_payload_bytes = payload_bytes;
         struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
@@ -575,7 +574,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
   payload_bytes -= trim_start + trim_end;
   payload_off += trim_start;
 
-  if(config.fp_tso) {
+  if(config.fp_gro || config.fp_lro) {
     // Find the segment corresponding to the offset
     uint32_t temp_payload_off = payload_off;
     struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
@@ -616,7 +615,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
 
   /* if there is payload, dma it to the receive buffer */
   if (payload_bytes > 0) {
-    if(config.fp_tso) {
+    if(config.fp_gro || config.fp_lro) {
       uint32_t temp_payload_off = payload_off;
       uint32_t temp_payload_bytes = payload_bytes;
       struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
