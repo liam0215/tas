@@ -1069,7 +1069,7 @@ static void flow_tx_segment(struct dataplane_context *ctx,
 
   /* add payload if requested */
   if (payload > 0) {
-    if(config.fp_gather) {
+    if(config.fp_gather && payload_pos + payload <= fs->tx_len) {
       struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
       struct rte_mbuf *ext_mbuf = rte_pktmbuf_alloc(ctx->net.pool);
       mb->nb_segs = 1;
