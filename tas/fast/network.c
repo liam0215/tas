@@ -164,6 +164,11 @@ int network_init(unsigned n_threads)
     port_conf.rxmode.max_lro_pkt_size = 32768;
   }
 
+  /* enable multi-segment packets if gather requested */
+  if (config.fp_gather) {
+    port_conf.txmode.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
+  }
+
   /* disable rx interrupts if requested */
   if (!config.fp_interrupts)
     port_conf.intr_conf.rxq = 0;
@@ -203,6 +208,10 @@ int network_init(unsigned n_threads)
   if (config.fp_lro) {
     eth_devinfo.default_rxconf.offloads |= DEV_RX_OFFLOAD_TCP_LRO;
     eth_devinfo.max_lro_pkt_size = 32768;
+  }
+
+  if (config.fp_gather) {
+     eth_devinfo.default_txconf.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
   }
 
   memcpy(&tas_info->mac_address, &eth_addr, 6);

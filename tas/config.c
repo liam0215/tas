@@ -76,6 +76,7 @@ enum cfg_params {
   CP_FP_TSO,
   CP_FP_GRO,
   CP_FP_LRO,
+  CP_FP_GATHER,
   CP_FP_NO_AUTOSCALE,
   CP_FP_NO_HUGEPAGES,
   CP_FP_VLAN_STRIP,
@@ -211,6 +212,9 @@ static struct option opts[] = {
     { .name = "fp-lro",
       .has_arg = no_argument,
       .val = CP_FP_LRO },
+    { .name = "fp-gather",
+      .has_arg = no_argument,
+      .val = CP_FP_GATHER },
     { .name = "fp-no-autoscale",
       .has_arg = no_argument,
       .val = CP_FP_NO_AUTOSCALE },
@@ -509,6 +513,9 @@ int config_parse(struct configuration *c, int argc, char *argv[])
       case CP_FP_LRO:
         c->fp_lro = 1;
         break;
+      case CP_FP_GATHER:
+        c->fp_gather = 1;
+        break;
       case CP_FP_NO_AUTOSCALE:
         c->fp_autoscale = 0;
         break;
@@ -622,6 +629,7 @@ static int config_defaults(struct configuration *c, char *progname)
   c->fp_tso = 0;
   c->fp_gro = 0;
   c->fp_lro = 0;
+  c->fp_gather = 0;
   c->fp_autoscale = 1;
   c->fp_hugepages = 1;
   c->fp_vlan_strip = 0;

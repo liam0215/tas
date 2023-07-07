@@ -125,6 +125,8 @@ struct configuration {
   uint32_t fp_gro;
   /** FP: large receive offload enabled */
   uint32_t fp_lro;
+  /** FP: scatter gather IO for tx */
+  uint32_t fp_gather;
   /** FP: auto scaling enabled */
   uint32_t fp_autoscale;
   /** FP: use huge pages for internal and buffer memory */

@@ -85,11 +85,6 @@ static inline void network_buf_setlen(struct network_buf_handle *bh,
 {
   struct rte_mbuf *mb = (struct rte_mbuf *) bh;
   mb->pkt_len = mb->data_len = len;
-  if(mb->nb_segs > 1) {
-    mb->next->nb_segs = mb->nb_segs - 1;
-    rte_pktmbuf_free(mb->next);
-  }
-  mb->nb_segs = 1;
 }
 
 

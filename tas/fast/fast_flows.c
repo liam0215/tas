@@ -26,6 +26,7 @@
 #include <rte_config.h>
 #include <rte_ip.h>
 #include <rte_hash_crc.h>
+#include<rte_malloc.h>
 
 #include <tas_memif.h>
 #include <utils_sync.h>
@@ -1002,6 +1003,8 @@ static void flow_rx_seq_write(struct flextcp_pl_flowst *fs, uint32_t seq,
 }
 #endif
 
+static void ext_buf_free_callback_fn(void *addr __rte_unused, void *opaque __rte_unused) {}
+
 static void flow_tx_segment(struct dataplane_context *ctx,
     struct network_buf_handle *nbh, struct flextcp_pl_flowst *fs,
     uint32_t seq, uint32_t ack, uint32_t rxwnd, uint16_t payload,
@@ -1066,7 +1069,20 @@ static void flow_tx_segment(struct dataplane_context *ctx,
 
   /* add payload if requested */
   if (payload > 0) {
-    flow_tx_read(fs, payload_pos, payload, (uint8_t *) p + hdrs_len);
+    if(config.fp_gather) {
+      struct rte_mbuf *mb = (struct rte_mbuf *) nbh;
+      struct rte_mbuf *ext_mbuf = rte_pktmbuf_alloc(ctx->net.pool);
+      mb->nb_segs = 1;
+      ext_mbuf->nb_segs = 1;
+      rte_iova_t buf_iova = (rte_iova_t) dma_pointer(fs->tx_base + payload_pos, payload);
+      struct rte_mbuf_ext_shared_info *shinfo = (struct rte_mbuf_ext_shared_info *) rte_malloc(NULL, sizeof(struct rte_mbuf_ext_shared_info), 0);
+      shinfo->free_cb = (rte_mbuf_extbuf_free_callback_t) ext_buf_free_callback_fn;
+      rte_mbuf_ext_refcnt_set(shinfo, 1);
+      rte_pktmbuf_attach_extbuf(ext_mbuf, dma_pointer(fs->tx_base + payload_pos, payload), buf_iova, payload, shinfo);
+      rte_pktmbuf_chain(mb, ext_mbuf);
+    } else {
+      flow_tx_read(fs, payload_pos, payload, (uint8_t *) p + hdrs_len);
+    }
   }
 
   /* checksums */
