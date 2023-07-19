@@ -167,6 +167,8 @@ int network_init(unsigned n_threads)
   /* enable multi-segment packets if gather requested */
   if (config.fp_gather) {
     port_conf.txmode.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
+    // fprintf(stderr, "max segments per packet: %u, max segments per MTU: %u\n",
+    //     eth_devinfo.tx_desc_lim.nb_seg_max, eth_devinfo.tx_desc_lim.nb_mtu_seg_max);
   }
 
   /* disable rx interrupts if requested */

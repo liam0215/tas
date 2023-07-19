@@ -84,7 +84,10 @@ static inline void network_buf_setlen(struct network_buf_handle *bh,
     uint16_t len)
 {
   struct rte_mbuf *mb = (struct rte_mbuf *) bh;
-  mb->pkt_len = mb->data_len = len;
+  mb->pkt_len = len;
+  if(mb->nb_segs == 1) {
+    mb->data_len = len;
+  }
 }
 
 
@@ -121,7 +124,17 @@ static inline int network_send(struct network_thread *t, unsigned num,
         network_buf_bufoff(bhs[i]));
   }
 #endif
-
+  int n = rte_eth_tx_prepare(net_port_id, t->queue_id, mbs, num);
+  if(n != num) {
+    fprintf(stderr, "prepared: %u, req: %u, err: %d\n", n, num, rte_errno);
+  }
+  // } else if(n > 0) {
+  //   fprintf(stderr, "mbuf pkt size: %u, data size: %u\n", mbs[0]->pkt_len, mbs[0]->data_len);
+  //   if(mbs[0]->nb_segs > 1){
+  //     fprintf(stderr, "mbuf nb_segs: %u, seg 2 data size: %u\n", mbs[0]->nb_segs, mbs[0]->next->data_len);
+  //     fprintf(stderr, "mbuf ol flag: %llu\n", (mbs[0]->next->ol_flags & EXT_ATTACHED_MBUF));
+  //   }
+  // }
   return rte_eth_tx_burst(net_port_id, t->queue_id, mbs, num);
 }
 
@@ -182,7 +195,7 @@ static inline uint16_t network_buf_tcpxsums(struct network_buf_handle *bh, uint8
   /*mb->l2_len = l2l;
   mb->l3_len = l3l;
   mb->l4_len = 0;*/
-  mb->ol_flags = PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM;
+  mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM;
 
   return network_ip_phdr_xsum(ip_s, ip_d, ip_proto, l3_paylen);
 }
