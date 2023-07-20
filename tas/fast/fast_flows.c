@@ -1005,9 +1005,9 @@ static void flow_rx_seq_write(struct flextcp_pl_flowst *fs, uint32_t seq,
 }
 #endif
 
-// static void ext_buf_free_callback_fn(void *addr __rte_unused, void *opaque __rte_unused) {
-//   rte_free(opaque);
-// }
+static void ext_buf_free_callback_fn(void *addr __rte_unused, void *opaque __rte_unused) {
+  rte_free(opaque);
+}
 
 static void flow_tx_segment(struct dataplane_context *ctx,
     struct network_buf_handle *nbh, struct flextcp_pl_flowst *fs,
@@ -1079,22 +1079,22 @@ static void flow_tx_segment(struct dataplane_context *ctx,
       mb->data_len = hdrs_len;
       mb->nb_segs = 1;
       ext_mbuf->nb_segs = 1;
-      // rte_iova_t buf_iova = (rte_iova_t) dma_pointer(fs->tx_base + payload_pos, payload);
+      rte_iova_t buf_iova = (rte_iova_t) dma_pointer(fs->tx_base + payload_pos, payload);
       // rte_iova_t buf_iova = rte_mem_virt2iova((void *)(tas_shm + fs->tx_base + payload_pos));
       // if(buf_iova == RTE_BAD_IOVA) {
       //   fprintf(stderr, "bad iova\n");
       // }
-      // struct rte_mbuf_ext_shared_info *shinfo = (struct rte_mbuf_ext_shared_info *) rte_malloc(NULL, sizeof(struct rte_mbuf_ext_shared_info), 0);
-      // shinfo->free_cb = (rte_mbuf_extbuf_free_callback_t) ext_buf_free_callback_fn;
-      // shinfo->fcb_opaque = shinfo;
-      // rte_mbuf_ext_refcnt_set(shinfo, 1);
-      // rte_pktmbuf_attach_extbuf(ext_mbuf, dma_pointer(fs->tx_base + payload_pos, payload), buf_iova, payload, shinfo);
+      struct rte_mbuf_ext_shared_info *shinfo = (struct rte_mbuf_ext_shared_info *) rte_malloc(NULL, sizeof(struct rte_mbuf_ext_shared_info), 0);
+      shinfo->free_cb = (rte_mbuf_extbuf_free_callback_t) ext_buf_free_callback_fn;
+      shinfo->fcb_opaque = shinfo;
+      rte_mbuf_ext_refcnt_set(shinfo, 1);
+      rte_pktmbuf_attach_extbuf(ext_mbuf, dma_pointer(fs->tx_base + payload_pos, payload), buf_iova, payload, shinfo);
       ext_mbuf->data_len = payload;
-      flow_tx_read(fs, payload_pos, payload, rte_pktmbuf_mtod(ext_mbuf, uint8_t *));
+      // flow_tx_read(fs, payload_pos, payload, rte_pktmbuf_mtod(ext_mbuf, uint8_t *));
       rte_pktmbuf_chain(mb, ext_mbuf);
     } else {
-      printf("normal payload read with size: %u, tx_len: %u, pos: %u, seq: %u\n", payload, fs->tx_len, payload_pos, seq);
-      fflush(stdout);
+      // printf("normal payload read with size: %u, tx_len: %u, pos: %u, seq: %u\n", payload, fs->tx_len, payload_pos, seq);
+      // fflush(stdout);
       flow_tx_read(fs, payload_pos, payload, (uint8_t *) p + hdrs_len);
     }
   }

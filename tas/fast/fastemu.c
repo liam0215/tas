@@ -37,6 +37,8 @@
 #include "internal.h"
 #include "fastemu.h"
 
+#include <utils_timeout.h>
+
 #define DATAPLANE_TSCS
 
 #ifdef DATAPLANE_STATS
@@ -146,6 +148,8 @@ void dataplane_loop(struct dataplane_context *ctx)
   uint32_t ts;
   uint64_t cyc, prev_cyc;
   int was_idle = 1;
+  uint32_t last_print = 0;
+  uint32_t cur_ts;
 
   notify_canblock_reset(&nbs);
   while (!exited) {
@@ -186,6 +190,16 @@ void dataplane_loop(struct dataplane_context *ctx)
     if (config.fp_interrupts && notify_canblock(&nbs, !was_idle, cyc)) {
       dataplane_block(ctx, ts);
       notify_canblock_reset(&nbs);
+    }
+    ctx->idle_cycles += was_idle;
+    cur_ts = util_timeout_time_us();
+    if (cur_ts - last_print >= 1000000) {
+      if (!config.quiet) {
+        printf("stats: idle cycles: %lu\n", ctx->idle_cycles);
+        fflush(stdout);
+      }
+      ctx->idle_cycles = 0;
+      last_print = cur_ts;
     }
   }
 }

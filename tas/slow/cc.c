@@ -238,7 +238,7 @@ static inline void issue_retransmits(struct connection *c,
     if (c->cnt_tx_pending++ == 0) {
       c->ts_tx_pending = cur_ts;
     } else if (c->cnt_tx_pending >= config.cc_rexmit_ints &&
-        (cur_ts - c->ts_tx_pending) >= 10000 * rtt)
+        (cur_ts - c->ts_tx_pending) >= 15 * rtt)
     {
       if (nicif_connection_retransmit(c->flow_id, c->flow_group) == 0) {
         fprintf(stderr, "rtt: %u, ts_diff: %u\n", rtt, (cur_ts - c->ts_tx_pending));

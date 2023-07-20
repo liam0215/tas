@@ -213,7 +213,9 @@ int network_init(unsigned n_threads)
   }
 
   if (config.fp_gather) {
-     eth_devinfo.default_txconf.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
+    eth_devinfo.default_txconf.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
+    rte_extmem_register(tas_shm, config.shm_len, NULL, 0, 4096);
+    rte_dev_dma_map(eth_devinfo.device, tas_shm, 0, config.shm_len);
   }
 
   memcpy(&tas_info->mac_address, &eth_addr, 6);
