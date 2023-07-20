@@ -5,7 +5,7 @@
 
 CPPFLAGS += -Iinclude/
 CPPFLAGS += $(EXTRA_CPPFLAGS)
-CFLAGS += -std=gnu99 -O3 -g -Wall -Werror -march=native -fno-omit-frame-pointer -Wno-address-of-packed-member -Wno-maybe-uninitialized
+CFLAGS += -std=gnu99 -O3 -g -Wall -Werror -march=native -fno-omit-frame-pointer -Wno-address-of-packed-member -Wno-maybe-uninitialized -Wno-deprecated-declarations
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS_SHARED += $(CFLAGS) -fPIC
 LDFLAGS += -pthread -g
