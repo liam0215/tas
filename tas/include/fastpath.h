@@ -96,7 +96,6 @@ struct dataplane_context {
   uint64_t loadmon_cyc_busy;
 
   uint64_t kernel_drop;
-  uint64_t idle_cycles;
 #ifdef DATAPLANE_STATS
   /********************************************************/
   /* Stats */

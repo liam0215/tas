@@ -151,6 +151,9 @@ void dataplane_loop(struct dataplane_context *ctx)
   uint32_t last_print = 0;
   uint32_t cur_ts;
 
+  uint64_t idle_cycles = 0;
+  uint64_t total_cycles = 0;
+
   notify_canblock_reset(&nbs);
   while (!exited) {
     unsigned n = 0;
@@ -191,14 +194,16 @@ void dataplane_loop(struct dataplane_context *ctx)
       dataplane_block(ctx, ts);
       notify_canblock_reset(&nbs);
     }
-    ctx->idle_cycles += was_idle;
+    idle_cycles += was_idle;
+    total_cycles += 1;
     cur_ts = util_timeout_time_us();
     if (cur_ts - last_print >= 1000000) {
       if (!config.quiet) {
-        printf("stats: idle cycles: %lu\n", ctx->idle_cycles);
+        printf("stats: idle cycles: %lu, total cycles: %lu\n", idle_cycles, total_cycles);
         fflush(stdout);
       }
-      ctx->idle_cycles = 0;
+      idle_cycles = 0;
+      total_cycles = 0;
       last_print = cur_ts;
     }
   }
