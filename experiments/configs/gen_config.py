@@ -4,8 +4,8 @@
 
 class Defaults:
     def __init__(self):
-        self.client_ip = '192.168.10.13'
-        self.server_ip = '192.168.10.14'
+        self.client_ip = '192.168.10.26'
+        self.server_ip = '192.168.10.21'
 
         self.pane_prefix = 'e_'
         self.server_pane_prefix = '{}server'.format(self.pane_prefix)
@@ -31,8 +31,8 @@ class Defaults:
         self.c_cleanup_pane = "{}_cleanup".format(self.client_pane_prefix)
 
         # Mellanox interfaces on client and server machine
-        self.client_interface = 'enp59s0f0np0'
-        self.server_interface = 'enp59s0f0np0'
+        self.client_interface = 'enp216s0f0np0'
+        self.server_interface = 'enp134s0f0np0'
 
         ### INTERVAL VM CONFIGS ###
         # Network interface used to set ip for a VM
@@ -42,24 +42,24 @@ class Defaults:
         # PCI Id of TAS interface inside a VM
         self.pci_id = "0000:00:03.0"
 
-        self.remote_connect_cmd = 'ssh swsnetlab04'
+        self.remote_connect_cmd = 'ssh -A swsnetlab01'
 
-        self.home_dir = '/local/mstolet'
+        self.home_dir = '/local/liam'
         self.home_dir_virt = '/home/tas'
 
-        self.default_vtas_dir_bare = '{}/projects/tas'.format(self.home_dir)
+        self.default_vtas_dir_bare = '{}/virttas/tas'.format(self.home_dir)
         self.default_vtas_dir_virt = '{}/projects/tas'.format(self.home_dir_virt)
-        self.default_otas_dir_bare = '{}/projects/o-tas/tas'.format(self.home_dir)
+        self.default_otas_dir_bare = '{}/otas/tas'.format(self.home_dir)
         self.default_otas_dir_virt = '{}/projects/o-tas/tas'.format(self.home_dir_virt)
 
-        self.default_vbenchmark_dir_bare = '{}/projects/benchmarks'.format(self.home_dir)
+        self.default_vbenchmark_dir_bare = '{}/benchmarks'.format(self.home_dir)
         self.default_vbenchmark_dir_virt = '{}/projects/benchmarks'.format(self.home_dir_virt)
-        self.default_obenchmark_dir_bare = '{}/projects/o-benchmarks/benchmarks'.format(self.home_dir)
+        self.default_obenchmark_dir_bare = '{}/o-benchmarks/benchmarks'.format(self.home_dir)
         self.default_obenchmark_dir_virt = '{}/projects/o-benchmarks/benchmarks'.format(self.home_dir_virt)
 
         self.ovs_ctl_path = "/usr/local/share/openvswitch/scripts/ovs-ctl"
-        self.original_ovs_path = "/local/mstolet/projects/o-ovs/ovs"
-        self.modified_ovs_path = "/local/mstolet/projects/ovs"
+        self.original_ovs_path = "/local/liam/o-ovs/ovs"
+        self.modified_ovs_path = "/local/liam/v-ovs/ovs"
 
 class MachineConfig:
     def __init__(self, ip, interface, stack, is_remote, is_server):
@@ -71,7 +71,7 @@ class MachineConfig:
 
 class TasConfig:
     def __init__(self, pane, machine_config, project_dir, ip, n_cores, 
-            dpdk_extra="3b:00.0"):
+            dpdk_extra="d8:00.0"):
         self.name = "server" if machine_config. is_server else "client"
         
         self.project_dir = project_dir

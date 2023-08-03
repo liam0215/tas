@@ -31,7 +31,8 @@ class Config:
                 machine_config=self.s_machine_config,
                 project_dir=self.defaults.default_vtas_dir_bare,
                 ip=self.s_machine_config.ip,
-                n_cores=14)
+                n_cores=14,
+                dpdk_extra="86:00.0")
         tas_config.args = tas_config.args + ' --vm-shm-len=8589934592'
         self.s_tas_configs.append(tas_config)
 

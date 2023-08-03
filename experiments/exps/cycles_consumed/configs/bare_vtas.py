@@ -28,7 +28,8 @@ class Config:
                 machine_config=self.s_machine_config,
                 project_dir=self.defaults.default_otas_dir_bare,
                 ip=self.s_machine_config.ip,
-                n_cores=12)
+                n_cores=12,
+                dpdk_extra="86:00.0")
         tas_config.args = tas_config.args + ' --shm-len=4294967296'
         # tas_config = TasConfig(pane=self.defaults.s_tas_pane,
         #         machine_config=self.s_machine_config,
