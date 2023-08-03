@@ -8,12 +8,14 @@ from nodes.node import Node
 class OvsTas(Node):
   
   def __init__(self, defaults, machine_config, tas_configs,
-      vm_configs, wmanager, 
+      vm_configs, interface, pci_id, wmanager, 
       setup_pane_name, cleanup_pane_name):
 
     Node.__init__(self, defaults, machine_config, wmanager, 
         setup_pane_name, cleanup_pane_name)
         
+    self.interface = interface
+    self.pci_id = pci_id
     self.tas_configs = tas_configs
     self.vm_configs = vm_configs
     self.vms = []
@@ -23,28 +25,34 @@ class OvsTas(Node):
     super().setup()
     self.ovs_make_install(self.defaults.original_ovs_path)
     self.start_ovsdpdk(self.vm_configs[0].manager_dir)
-    self.ovsbr_add("br0", 
-                   self.machine_config.ip + "/24",
-                   self.machine_config.interface,
-                   self.vm_configs[0].manager_dir)
-    
-    for vm_config in self.vm_configs:
-      if is_client:
-        remote_ip = self.defaults.server_ip
-      else:
-        remote_ip = self.defaults.client_ip
+    self.ovsbr_add_internal("br-int", self.vm_configs[0].manager_dir)
 
-      greid = vm_config.id + 1
-      self.ovsvhost_add("br0", 
+    if is_client:
+      remote_ip = self.defaults.server_ip
+      mac = self.defaults.client_mac
+    else:
+      remote_ip = self.defaults.client_ip
+      mac = self.defaults.server_mac
+
+    for vm_config in self.vm_configs:
+      self.ovsvhost_add("br-int", 
                         "vhost{}".format(vm_config.id),
-                        "gre" + str(greid),
-                        remote_ip,
-                        greid,
+                        vm_config.n_queues,
                         vm_config.manager_dir)
+  
+    self.ovstunnel_add("br-int", "gre1", remote_ip, 
+                       remote_ip, 1)
+    self.ovsbr_add_physical("br-phy", mac, 
+                            self.vm_configs[0].manager_dir)
+    self.ovsbr_add_port("br-phy", self.interface)
+    self.set_dpdk_interface(self.interface, self.pci_id)
+    self.add_ip("br-phy", self.machine_config.ip + "/24")
+    self.interface_up("br-phy")
 
   def cleanup(self):
     super().cleanup()
-    self.ovsbr_del("br0")
+    self.ovsbr_del("br-int")
+    self.ovsbr_del("br-phy")
     self.stop_ovsdpdk(self.vm_configs[0].manager_dir)
 
     cmd = "sudo ip addr add {} dev {}".format(self.machine_config.ip + "/24",
@@ -77,6 +85,7 @@ class OvsTas(Node):
     vm.start()
     vm.enable_hugepages()
     vm.enable_noiommu("1af4 1110")
+    vm.disable_offloads(self.defaults.tas_interface)
     vm.init_interface(vm_config.vm_ip, self.defaults.tas_interface)
     vm.dpdk_bind(vm_config.vm_ip, self.defaults.tas_interface,
         self.defaults.pci_id)

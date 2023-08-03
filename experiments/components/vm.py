@@ -12,14 +12,31 @@ class VM:
     
     def start(self):
         self.pane.send_keys('cd ' + self.vm_config.manager_dir)
-        start_vm_cmd = "sudo bash start-vm.sh {} {} {}".format(
-                self.machine_config.stack, self.vm_config.id,
-                self.machine_config.interface)
+        if self.vm_config.n_queues is None:
+            start_vm_cmd = "sudo bash start-vm.sh {} {} {} {} {}".format(
+                    self.machine_config.stack, self.vm_config.id,
+                    self.machine_config.interface, self.vm_config.n_cores,
+                    self.vm_config.memory)
+        else:
+            start_vm_cmd = "sudo bash start-vm.sh {} {} {} {} {} {}".format(
+                    self.machine_config.stack, self.vm_config.id,
+                    self.machine_config.interface, self.vm_config.n_cores,
+                    self.vm_config.memory, self.vm_config.n_queues)
         self.pane.send_keys(start_vm_cmd)
        
         print("Started VM")
         time.sleep(25)
         self.login_vm()
+
+    def enable_offloads(self, interface):
+        cmd = "sudo ethtool --ofload {} gso on tso on sg on gro on".format(
+                    interface)
+        self.pane.send_keys(cmd)
+
+    def disable_offloads(self, interface):
+        cmd = "sudo ethtool --ofload {} gso off tso off sg off gro off".format(
+                    interface)
+        self.pane.send_keys(cmd)
 
     def enable_hugepages(self):
         cmd = "sudo mount -t hugetlbfs nodev /dev/hugepages"
@@ -28,6 +45,11 @@ class VM:
         cmd = "echo 1024 | sudo tee /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages"
         self.pane.send_keys(cmd)
         time.sleep(5)
+
+    def set_mtu(self, interface, mss):
+        cmd = "sudo ip link set dev {} mtu {} up".format(interface, mss)
+        self.pane.send_keys(cmd)
+        time.sleep(1)
 
     def enable_noiommu(self, vendor_id):
         self.pane.send_keys("sudo su -")

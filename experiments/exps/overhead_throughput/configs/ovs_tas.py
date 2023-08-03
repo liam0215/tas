@@ -29,7 +29,10 @@ class Config:
                 machine_config=self.s_machine_config,
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
-                idx=0)
+                idx=0,
+                n_cores=22,
+                memory=10,
+                n_queues=10)
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
                 machine_config=self.s_machine_config,
                 project_dir=self.defaults.default_otas_dir_virt,
@@ -66,7 +69,10 @@ class Config:
                 machine_config=self.c_machine_config,
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
-                idx=0)
+                idx=0,
+                n_cores=22,
+                memory=10,
+                n_queues=10)
         tas0_config = TasConfig(pane=self.defaults.c_tas_pane,
                 machine_config=self.c_machine_config,
                 project_dir=self.defaults.default_otas_dir_virt,
@@ -81,8 +87,8 @@ class Config:
                 pane=self.defaults.c_client_pane,
                 idx=0, vmid=0, stack=self.cstack,
                 ip=self.s_vm_configs[0].vm_ip, port=1234, ncores=1,
-                msize=msize, mpending=64, nconns=1,
-                open_delay=1, max_msgs_conn=0, max_pend_conns=1,
+                msize=msize, mpending=64, nconns=1000,
+                open_delay=3, max_msgs_conn=0, max_pend_conns=1,
                 bench_dir=self.defaults.default_obenchmark_dir_virt,
                 tas_dir=self.defaults.default_otas_dir_virt)
 

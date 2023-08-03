@@ -27,7 +27,14 @@ int ivshmem_init(struct guest_proxy *pxy)
   /* Create epoll that will wait for events from host */
   if ((pxy->chan_epfd = epoll_create1(0)) < 0)
   {
-    fprintf(stderr, "ivshmem_init: failed to create ivm_epfd.\n");
+    fprintf(stderr, "ivshmem_init: failed to create chan_epfd.\n");
+    return -1;
+  }
+
+  /* Create epoll that will wait and block */
+  if ((pxy->block_epfd = epoll_create1(0)) < 0)
+  {
+    fprintf(stderr, "ivshmem_init: failed to create block_epfd.\n");
     return -1;
   }
 
@@ -111,18 +118,23 @@ int ivshmem_channel_poll(struct guest_proxy *pxy)
   {
     case MSG_TYPE_HELLO:
       channel_handle_hello(pxy);
+      ivshmem_drain_evfd(pxy->irq_fd);
       break;
     case MSG_TYPE_TASINFO_RES:
       channel_handle_tasinfo_res(pxy, (struct tasinfo_res_msg *) msg);
+      ivshmem_drain_evfd(pxy->irq_fd);
       break;
     case MSG_TYPE_NEWAPP_RES:
       channel_handle_newapp_res(pxy, (struct newapp_res_msg *) msg);
+      ivshmem_drain_evfd(pxy->irq_fd);
       break;
     case MSG_TYPE_CONTEXT_RES:
       channel_handle_ctx_res(pxy, (struct context_res_msg *) msg);
+      ivshmem_drain_evfd(pxy->irq_fd);
       break;
     case MSG_TYPE_POKE_APP_CTX:
       channel_handle_vpoke(pxy, (struct poke_app_ctx_msg *) msg);
+      
       break;
     default:
       fprintf(stderr, "ivshmem_channel_poll: unknown message.\n");

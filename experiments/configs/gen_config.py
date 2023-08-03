@@ -32,15 +32,20 @@ class Defaults:
 
         # Mellanox interfaces on client and server machine
         self.client_interface = 'enp216s0f0np0'
+        self.client_interface_pci = "0000:3b:00.0"
+        self.client_mac = "b8:59:9f:c4:af:ee"
         self.server_interface = 'enp134s0f0np0'
+        self.server_interface_pci = "0000:3b:00.0"
+        self.server_mac = "b8:59:9f:c4:af:96"
 
-        ### INTERVAL VM CONFIGS ###
+        ### INTERNAL VM CONFIGS ###
         # Network interface used to set ip for a VM
         self.vm_interface = "enp0s3"
         # Network interface used to bind TAS in tap VM
         self.tas_interface = "enp0s3"
         # PCI Id of TAS interface inside a VM
         self.pci_id = "0000:00:03.0"
+        ############################
 
         self.remote_connect_cmd = 'ssh -A swsnetlab01'
 
@@ -92,7 +97,6 @@ class TasConfig:
         self.args = '--ip-addr={}/24 --fp-cores-max={}'.format(ip, n_cores) + \
             ' --cc=const-rate --cc-const-rate=0 ' + \
             ' --fp-no-autoscale --fp-no-ints' + \
-            ' --dpdk-extra="--lcores=0@0,1@2,2@4,3@6,4@8,5@10,6@12,7@14,8@16,9@18,10@20"' + \
             ' --dpdk-extra="-a{}"'.format(dpdk_extra)   
         
         self.pane = pane
@@ -100,7 +104,8 @@ class TasConfig:
         self.n_cores = n_cores
 
 class VMConfig:
-    def __init__(self, pane, machine_config, tas_dir, tas_dir_virt, idx):
+    def __init__(self, pane, machine_config, tas_dir, tas_dir_virt, idx,
+                 n_cores, memory, n_queues=None):
         self.name = "server" if machine_config.is_server else "client"
         
         self.manager_dir = tas_dir + '/images'
@@ -108,6 +113,10 @@ class VMConfig:
         
         self.pane = pane
         self.id = idx
+
+        self.n_cores = n_cores
+        self.memory = memory
+        self.n_queues = n_queues
         if machine_config.is_server:
             self.vm_ip = '10.0.0.{}'.format(1 + idx)
             self.tas_tap_ip = '10.0.1.{}'.format(1 + idx)
@@ -151,7 +160,8 @@ class ClientConfig:
     def __init__(self, pane, idx, vmid,
             ip, port, ncores, msize, mpending,
             nconns, open_delay, max_msgs_conn, max_pend_conns,
-            bench_dir, tas_dir, stack, exp_name, groupid=0):
+            bench_dir, tas_dir, stack, exp_name, 
+            bursty=0, burst_length_mean=0, burst_interval_mean=0, groupid=0):
         self.name = "client"
         self.exp_name = exp_name
         self.exp_name = ""
@@ -164,15 +174,22 @@ class ClientConfig:
         self.bench_dir = bench_dir
         self.lib_so = tas_dir + '/lib/libtas_interpose.so'
         self.exec_file = self.comp_dir + '/testclient_linux'
-        self.args = '{} {} {} foo {} {} {} {} {} {}'.format(ip, port, ncores, \
-                msize, mpending, nconns, open_delay, \
-                max_msgs_conn, max_pend_conns)
        
         self.out_dir = tas_dir + "/out"
         self.out_file = "{}_client{}_node{}_nconns{}_ncores{}_msize{}".format(
                 exp_name, idx, vmid, nconns, ncores, msize)
+        self.latency_file = self.out_file + "_latency_hist"
+        self.temp_file = "temp"
         self.out = self.out_dir + '/' + self.out_file
+        self.latency_out = self.out_dir + "/" + self.latency_file
+        self.latency_temp = self.out_dir + "/" + self.temp_file
        
+        self.args = '{} {} {} foo {} {} {} {} {} {} {} {} {} {} {}'.format(ip, port, ncores, \
+            msize, mpending, nconns, open_delay, \
+            max_msgs_conn, max_pend_conns, \
+            bursty, burst_length_mean, burst_interval_mean, \
+            self.out_dir + "/", self.latency_file)
+
         self.groupid = groupid
         self.pane = pane
         self.id = idx

@@ -30,7 +30,7 @@ class Config:
                 ip=self.s_machine_config.ip,
                 n_cores=5,
                 dpdk_extra="86:00.0")
-        tas_config.args = tas_config.args
+        tas_config.args = tas_config.args + " --fp-no-gre"
         self.s_tas_configs.append(tas_config)
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
@@ -67,7 +67,7 @@ class Config:
                 project_dir=self.defaults.default_vtas_dir_bare,
                 ip=self.c_machine_config.ip,
                 n_cores=1)
-        tas_config.args = tas_config.args
+        tas_config.args = tas_config.args + " --fp-no-gre"
         self.c_tas_configs.append(tas_config)
 
         client0_config = ClientConfig(exp_name=exp_name, 
