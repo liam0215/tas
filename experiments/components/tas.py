@@ -45,6 +45,7 @@ class TAS:
                 args=tas_args,
                 save_log=True,
                 clean=False)
+        time.sleep(3)
 
     def save_log_bare(self, exp_path):
         # # kill process to force flush to file

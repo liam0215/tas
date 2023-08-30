@@ -14,6 +14,7 @@ class Defaults:
         # Pane names
         self.s_tas_pane = "{}_tas".format(self.server_pane_prefix)
         self.s_vm_pane = "{}_vm".format(self.server_pane_prefix)
+        self.s_container_pane = "{}_container".format(self.server_pane_prefix)
         self.s_proxyg_pane = "{}_proxyg".format(self.server_pane_prefix)
         self.s_proxyh_pane = "{}_proxy_h".format(self.server_pane_prefix)
         self.s_server_pane = "{}".format(self.server_pane_prefix)
@@ -23,6 +24,7 @@ class Defaults:
 
         self.c_tas_pane = "{}_tas".format(self.client_pane_prefix)
         self.c_vm_pane = "{}_vm".format(self.client_pane_prefix)
+        self.c_container_pane = "{}_container".format(self.client_pane_prefix)
         self.c_proxyg_pane = "{}_proxyg".format(self.client_pane_prefix)
         self.c_proxyh_pane = "{}_proxyh".format(self.client_pane_prefix)
         self.c_client_pane = "{}".format(self.client_pane_prefix)
@@ -32,10 +34,10 @@ class Defaults:
 
         # Mellanox interfaces on client and server machine
         self.client_interface = 'enp216s0f0np0'
-        self.client_interface_pci = "0000:3b:00.0"
+        self.client_interface_pci = "0000:d8:00.0"
         self.client_mac = "b8:59:9f:c4:af:ee"
         self.server_interface = 'enp134s0f0np0'
-        self.server_interface_pci = "0000:3b:00.0"
+        self.server_interface_pci = "0000:86:00.0"
         self.server_mac = "b8:59:9f:c4:af:96"
 
         ### INTERNAL VM CONFIGS ###
@@ -57,7 +59,7 @@ class Defaults:
         self.default_otas_dir_bare = '{}/otas/tas'.format(self.home_dir)
         self.default_otas_dir_virt = '{}/projects/o-tas/tas'.format(self.home_dir_virt)
 
-        self.default_vbenchmark_dir_bare = '{}/benchmarks'.format(self.home_dir)
+        self.default_vbenchmark_dir_bare = '{}/v-benchmarks/benchmarks'.format(self.home_dir)
         self.default_vbenchmark_dir_virt = '{}/projects/benchmarks'.format(self.home_dir_virt)
         self.default_obenchmark_dir_bare = '{}/o-benchmarks/benchmarks'.format(self.home_dir)
         self.default_obenchmark_dir_virt = '{}/projects/o-benchmarks/benchmarks'.format(self.home_dir_virt)
@@ -118,11 +120,30 @@ class VMConfig:
         self.memory = memory
         self.n_queues = n_queues
         if machine_config.is_server:
-            self.vm_ip = '10.0.0.{}'.format(1 + idx)
+            self.vm_ip = '192.168.10.{}'.format(40 + idx)
             self.tas_tap_ip = '10.0.1.{}'.format(1 + idx)
         else:
-            self.vm_ip = '10.0.0.{}'.format(20 + idx)
+            self.vm_ip = '192.168.10.{}'.format(60 + idx)
             self.tas_tap_ip = '10.0.1.{}'.format(20 + idx)
+
+class ContainerConfig:
+    def __init__(self, pane, machine_config, tas_dir, tas_dir_virt, idx, n_cores, memory):
+        self.name = "server" if machine_config.is_server else "client"
+        
+        self.pane = pane
+        self.id = idx
+
+        self.n_cores = n_cores
+        self.memory = memory
+        self.manager_dir = tas_dir + '/images'
+        self.manager_dir_virt = tas_dir_virt + '/images'
+
+        if machine_config.is_server:
+            self.container_ip = '192.168.10.{}'.format(40 + idx)
+            self.tas_veth_ip = '10.0.1.{}'.format(1 + idx)
+        else:
+            self.container_ip = '192.168.10.{}'.format(60 + idx)
+            self.tas_veth_ip = '10.0.1.{}'.format(20 + idx)
 
 class ProxyConfig:
     def __init__(self, machine_config, comp_dir):

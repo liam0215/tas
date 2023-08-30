@@ -1,6 +1,6 @@
 from configs.gen_config import Defaults
 from configs.gen_config import MachineConfig
-from configs.gen_config import VMConfig
+from configs.gen_config import ContainerConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
 
@@ -10,12 +10,10 @@ class Config:
         self.defaults = Defaults()
         
         # Server Machine
-        self.sstack = 'ovs-linux'
+        self.sstack = 'container-linux'
         self.snum = 1
         self.snodenum = 1
-        self.s_tas_configs = []
-        self.s_vm_configs = []
-        self.s_proxyg_configs = []
+        self.s_container_configs = []
         self.server_configs = []
         
         self.s_machine_config = MachineConfig(ip=self.defaults.server_ip, 
@@ -24,16 +22,15 @@ class Config:
                 is_remote=True,
                 is_server=True)
         
-        vm0_config = VMConfig(pane=self.defaults.s_vm_pane,
-                machine_config=self.s_machine_config,
-                tas_dir=self.defaults.default_vtas_dir_bare,
-                tas_dir_virt=self.defaults.default_vtas_dir_virt,
-                idx=0,
-                n_cores=22,
-                memory=10,
-                n_queues=10)
-
-        self.s_vm_configs.append(vm0_config)
+        container0_config = ContainerConfig(pane=self.defaults.s_container_pane,
+                                            machine_config=self.s_machine_config,
+                                            tas_dir=self.defaults.default_vtas_dir_bare,
+                                            tas_dir_virt=self.defaults.default_vtas_dir_virt,
+                                            idx=0,
+                                            n_cores=22,
+                                            memory=10)
+        
+        self.s_container_configs.append(container0_config)
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                 idx=0, vmid=0,
@@ -43,12 +40,10 @@ class Config:
         self.server_configs.append(server0_config)
 
         # Client Machine
-        self.cstack = 'ovs-linux'
+        self.cstack = 'container-linux'
         self.cnum = 1
         self.cnodenum = 1
-        self.c_tas_configs = []
-        self.c_vm_configs = []
-        self.c_proxyg_configs = []
+        self.c_container_configs = []
         self.client_configs = []
 
         self.c_machine_config = MachineConfig(ip=self.defaults.client_ip, 
@@ -57,21 +52,20 @@ class Config:
                 is_remote=False,
                 is_server=False)
         
-        vm0_config = VMConfig(pane=self.defaults.c_vm_pane,
-                machine_config=self.c_machine_config,
-                tas_dir=self.defaults.default_vtas_dir_bare,
-                tas_dir_virt=self.defaults.default_vtas_dir_virt,
-                idx=0,
-                n_cores=22,
-                memory=10,
-                n_queues=10)
+        container0_config = ContainerConfig(pane=self.defaults.c_container_pane,
+                                                machine_config=self.c_machine_config,
+                                                tas_dir=self.defaults.default_vtas_dir_bare,
+                                                tas_dir_virt=self.defaults.default_vtas_dir_virt,
+                                                idx=0,
+                                                n_cores=22,
+                                                memory=10)
 
-        self.c_vm_configs.append(vm0_config)
+        self.c_container_configs.append(container0_config)
 
         client0_config = ClientConfig(exp_name=exp_name, 
                 pane=self.defaults.c_client_pane,
                 idx=0, vmid=0, stack=self.cstack,
-                ip=self.s_vm_configs[0].vm_ip, port=1234, ncores=1,
+                ip=self.s_container_configs[0].container_ip, port=1234, ncores=1,
                 msize=msize, mpending=64, nconns=1000,
                 open_delay=3, max_msgs_conn=0, max_pend_conns=1,
                 bench_dir=self.defaults.default_obenchmark_dir_virt,
