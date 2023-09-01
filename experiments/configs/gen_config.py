@@ -127,23 +127,30 @@ class VMConfig:
             self.tas_tap_ip = '10.0.1.{}'.format(20 + idx)
 
 class ContainerConfig:
-    def __init__(self, pane, machine_config, tas_dir, tas_dir_virt, idx, n_cores, memory):
-        self.name = "server" if machine_config.is_server else "client"
-        
+    def __init__(self, pane, machine_config, tas_dir, tas_dir_virt, idx, n_cores,
+                 memory, n_queues=1):
+        self.name = (
+            "server_{}".format(idx)
+            if machine_config.is_server
+            else "client_{}".format(idx)
+        )   
+     
         self.pane = pane
         self.id = idx
 
         self.n_cores = n_cores
         self.memory = memory
+        self.n_queues = n_queues
+
         self.manager_dir = tas_dir + '/images'
         self.manager_dir_virt = tas_dir_virt + '/images'
 
         if machine_config.is_server:
-            self.container_ip = '192.168.10.{}'.format(40 + idx)
-            self.tas_veth_ip = '10.0.1.{}'.format(1 + idx)
+            self.veth_bridge_ip = '192.168.10.{}'.format(40 + idx)
+            self.veth_container_ip = '192.168.10.{}'.format(80 + idx)
         else:
-            self.container_ip = '192.168.10.{}'.format(60 + idx)
-            self.tas_veth_ip = '10.0.1.{}'.format(20 + idx)
+            self.veth_bridge_ip = '192.168.10.{}'.format(60 + idx)
+            self.veth_container_ip = '192.168.10.{}'.format(100 + idx)
 
 class ProxyConfig:
     def __init__(self, machine_config, comp_dir):

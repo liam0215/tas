@@ -5,9 +5,9 @@ stack=$1
 container_id=$2
 n_cores=$3
 memory=$4 # In Gigabytes
+container_name=$5
 
 image_name="virtuoso"
-container_name="server"
 socket_path_base="/local/liam/"
 
 if [[ "$stack" == 'container-linux' ]]; then

@@ -231,3 +231,15 @@ class Node:
       cmd = "sudo bash ovsflow-add.sh {} {} {}".format(br_name, in_port, out_port)
       self.setup_pane.send_keys(cmd)
       time.sleep(2)
+
+  def ovsveth_add(self, br_name, veth_name_bridge, veth_name_container, script_dir, container_name, veth_bridge_ip, 
+                                                      veth_container_ip, n_queues=1):
+      cmd = "cd {}".format(script_dir)
+      self.setup_pane.send_keys(cmd)
+      time.sleep(1)
+      cmd = "sudo bash ovsveth-add.sh {} {} {} {} {} {} {}".format(br_name, veth_name_bridge, 
+                                                      veth_name_container, n_queues, 
+                                                      container_name, veth_bridge_ip, 
+                                                      veth_container_ip)
+      self.setup_pane.send_keys(cmd)
+      time.sleep(2)
