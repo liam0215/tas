@@ -38,14 +38,13 @@ class Server:
         time.sleep(3)
 
         cmd = ''
-        stack = self.machine_config.stack
         
         # Keep application on even cores, so it's the same NUMA node as TAS
         if cores is not None:
             cmd += "taskset -c {} ".format(cores)
 
         if w_sudo:
-            cmd = 'sudo -E '
+            cmd += 'sudo -E '
         
         if ld_preload:
             cmd += 'LD_PRELOAD=' + self.server_config.lib_so + ' '

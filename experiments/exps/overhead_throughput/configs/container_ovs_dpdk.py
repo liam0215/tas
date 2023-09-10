@@ -10,7 +10,7 @@ class Config:
         self.defaults = Defaults()
         
         # Server Machine
-        self.sstack = 'container-linux'
+        self.sstack = 'container-ovs-dpdk'
         self.snum = 1
         self.snodenum = 1
         self.s_container_configs = []
@@ -40,7 +40,7 @@ class Config:
         self.server_configs.append(server0_config)
 
         # Client Machine
-        self.cstack = 'container-linux'
+        self.cstack = 'container-ovs-dpdk'
         self.cnum = 1
         self.cnodenum = 1
         self.c_container_configs = []

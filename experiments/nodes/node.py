@@ -18,15 +18,29 @@ class Node:
     self.cleanup_pane = self.wmanager.add_new_pane(self.cleanup_pane_name, 
         self.machine_config.is_remote)
 
-  def add_ip(self, interface, ip):
+  def add_ip_in_pane(self, pane, interface, ip):
     cmd = "sudo ip addr add {} dev {}".format(ip, interface)
     self.setup_pane.send_keys(cmd)
     time.sleep(1)
 
-  def interface_up(self, interface):
+  def add_ip(self, interface, ip):
+    self.add_ip_in_pane(self.setup_pane, interface, ip)
+
+  def interface_up_in_pane(self, pane, interface):
     cmd = "sudo ip link set dev {} up".format(interface)
-    self.setup_pane.send_keys(cmd)
+    pane.send_keys(cmd)
     time.sleep(1)
+
+  def interface_up(self, interface):
+    self.interface_up_in_pane(self.setup_pane, interface)
+
+  def interface_del_in_pane(self, pane, interface):
+    cmd = "sudo ip link delete {}".format(interface)
+    pane.send_keys(cmd)
+    time.sleep(1)
+
+  def interface_del(self, interface):
+    self.interface_del_in_pane(self.cleanup_pane, interface)
 
   def iptables_f(self):
     cmd = "sudo iptables -F"
@@ -242,4 +256,4 @@ class Node:
                                                       container_name, veth_bridge_ip, 
                                                       veth_container_ip)
       self.setup_pane.send_keys(cmd)
-      time.sleep(2)
+      time.sleep(1)

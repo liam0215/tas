@@ -10,7 +10,7 @@ container_name=$5
 image_name="virtuoso"
 socket_path_base="/local/liam/"
 
-if [[ "$stack" == 'container-linux' ]]; then
+if [[ "$stack" == 'container-ovs-dpdk' ]]; then
     sudo docker run --net=none --name $container_name \
     --memory=${memory}g \
     --cpuset-cpus 22,24,26,28,30,32,34,36,38,40,42 \
