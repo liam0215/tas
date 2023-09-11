@@ -38,7 +38,7 @@ class OvsLinux(Node):
                         vm_config.manager_dir)
     
     self.ovstunnel_add("br-int", "gre1", remote_ip, 
-                       remote_ip, 1)
+                       self.vm_configs[0].manager_dir, 1)
     self.ovsbr_add_physical("br-phy", mac, 
                             self.vm_configs[0].manager_dir)
     self.ovsbr_add_port("br-phy", self.interface)

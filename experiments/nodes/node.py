@@ -20,7 +20,7 @@ class Node:
 
   def add_ip_in_pane(self, pane, interface, ip):
     cmd = "sudo ip addr add {} dev {}".format(ip, interface)
-    self.setup_pane.send_keys(cmd)
+    pane.send_keys(cmd)
     time.sleep(1)
 
   def add_ip(self, interface, ip):
