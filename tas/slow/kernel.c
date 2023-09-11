@@ -33,6 +33,7 @@
 
 #include <utils.h>
 #include <tas.h>
+#include <virtuoso.h>
 #include "internal.h"
 
 static void slowpath_block(uint32_t cur_ts);
@@ -142,11 +143,12 @@ int slowpath_main(int threads_launched)
   while (exited == 0)
   {
     unsigned n = 0;
+    
     cur_ts = util_timeout_time_us();
-
     n += nicif_poll();
-    if (config.fp_gre)
+    #if VIRTUOSO_GRE
       n += ovs_poll();
+    #endif
     n += cc_poll(cur_ts);
     n += appif_poll();
     n += kni_poll();
@@ -167,31 +169,15 @@ int slowpath_main(int threads_launched)
 
     if (cur_ts - last_print >= 1000000)
     {
-      // cycs_ts = util_rdtsc();
-
-      // bstats_vm0 = get_budget_stats(0, 0);
-      // bstats_vm1 = get_budget_stats(1, 0);
 
       if (!config.quiet)
       {
-        printf("stats: drops=%" PRIu64 " k_rexmit=%" PRIu64 " ecn=%" PRIu64 " acks=%" PRIu64 "\n",
+        printf("stats: drops=%" PRIu64 " k_rexmit=%" PRIu64 " ecn=%" PRIu64 " acks=%" PRIu64"\n",
                kstats.drops, kstats.kernel_rexmit, kstats.ecn_marked, kstats.acks);
-
-        // printf("ts=%ld elapsed=%ld "
-        //        "RVM0=%ld RVM1=%ld "
-        //        "POLLVM0=%ld TXVM0=%ld RXVM0=%ld "
-        //        "POLLVM1=%ld TXVM1=%ld RXVM1=%ld "
-        //        "BUVM0=%ld BUVM1=%ld\n",
-        //        cycs_ts, cycs_ts - last_cycs_ts,
-        //        bstats_vm0.cycles_total, bstats_vm1.cycles_total,
-        //        bstats_vm0.cycles_poll, bstats_vm0.cycles_tx, bstats_vm0.cycles_rx,
-        //        bstats_vm1.cycles_poll, bstats_vm1.cycles_tx, bstats_vm1.cycles_rx,
-        //        bstats_vm0.budget, bstats_vm1.budget);
         fflush(stdout);
       }
       
       last_print = cur_ts;
-      // last_cycs_ts = cycs_ts;
     }
 
     /* Accumulate per context VM budget and update total budget */
@@ -225,7 +211,7 @@ static void update_budget(int threads_launched)
 
   cur_ts = util_rdtsc();
   total_budget = config.bu_boost * (cur_ts - last_bu_update_ts);
-
+  
   /* Update budget */
   for (vmid = 0; vmid < FLEXNIC_PL_VMST_NUM; vmid++)
   {

@@ -32,6 +32,7 @@
 #include <rte_cycles.h>
 
 #include <tas_memif.h>
+#include <virtuoso.h>
 
 #include "internal.h"
 #include "fastemu.h"
@@ -161,9 +162,6 @@ int dataplane_context_init(struct dataplane_context *ctx)
     /* Initialize budget for each VM */
     ctx->budgets[i].vmid = i;
     ctx->budgets[i].budget = config.bu_max_budget;
-    ctx->budgets[i].cycles_poll = 0;
-    ctx->budgets[i].cycles_rx = 0;
-    ctx->budgets[i].cycles_tx = 0;
 
     /* Set phase counters to 0 */
     ctx->vm_counters[i] = 0;
@@ -177,6 +175,7 @@ int dataplane_context_init(struct dataplane_context *ctx)
       polled_ctx_init(p_ctx, j, i);
     }
   }
+  
   ctx->counters_total = 0;
   ctx->poll_rounds = 0;
   ctx->poll_next_vm = 0;
@@ -391,13 +390,11 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
   }
 
   /* look up flow states */
-  if (config.fp_gre)
-  {
+  #if VIRTUOSO_GRE
     fast_flows_packet_fss_gre(ctx, bhs, fss, n);
-  } else
-  {
+  #else
     fast_flows_packet_fss(ctx, bhs, fss, n);
-  }
+  #endif
 
   /* prefetch packet contents (2nd cache line, TS opt overlaps) */
   for (i = 0; i < n; i++)
@@ -406,13 +403,11 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
   }
 
   /* parse packets */
-  if (config.fp_gre)
-  {
+  #if VIRTUOSO_GRE
     fast_flows_packet_parse_gre(ctx, bhs, fss, tcpopts, n);
-  } else
-  {
+  #else
     fast_flows_packet_parse(ctx, bhs, fss, tcpopts, n);
-  }
+  #endif
 
   for (i = 0; i < n; i++)
   {
@@ -422,13 +417,11 @@ static unsigned poll_rx(struct dataplane_context *ctx, uint32_t ts,
       /* at this point we know fss[i] is a flow state struct */
       fs = fss[i];
       
-      if (config.fp_gre)
-      {
+      #if VIRTUOSO_GRE
         ret = fast_flows_packet_gre(ctx, bhs[i], fss[i], &tcpopts[i], ts);
-      } else
-      {
+      #else
         ret = fast_flows_packet(ctx, bhs[i], fss[i], &tcpopts[i], ts);
-      }
+      #endif
 
       ctx->counters_total += 1;
       ctx->vm_counters[fs->vm_id] += 1;
@@ -871,20 +864,6 @@ static void spend_budget(struct dataplane_context *ctx,
     counter = ctx->vm_counters[vmid];
     vm_cycles = cycles * (counter / ctx->counters_total);
     __sync_fetch_and_sub(&ctx->budgets[vmid].budget, vm_cycles);
-
-    switch(phase)
-    {
-      case POLL_PHASE:
-        __sync_fetch_and_add(&ctx->budgets[vmid].cycles_poll, vm_cycles);
-        break;
-      case TX_PHASE:
-        __sync_fetch_and_add(&ctx->budgets[vmid].cycles_tx, vm_cycles);
-        break;
-      case RX_PHASE:
-        __sync_fetch_and_add(&ctx->budgets[vmid].cycles_rx, vm_cycles);
-        break;
-    }
-
     ctx->vm_counters[vmid] = 0;
   }
 

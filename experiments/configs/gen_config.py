@@ -33,12 +33,12 @@ class Defaults:
         self.c_cleanup_pane = "{}_cleanup".format(self.client_pane_prefix)
 
         # Mellanox interfaces on client and server machine
-        self.client_interface = 'enp216s0f0np0'
+        self.client_interface = "enp216s0f0np0"
         self.client_interface_pci = "0000:d8:00.0"
-        self.client_mac = "b8:59:9f:c4:af:ee"
-        self.server_interface = 'enp134s0f0np0'
+        self.client_mac = "b8:59:9f:c4:af:1e"
+        self.server_interface = "enp134s0f0np0"
         self.server_interface_pci = "0000:86:00.0"
-        self.server_mac = "b8:59:9f:c4:af:96"
+        self.server_mac = "98:03:9b:7f:80:18"
 
         ### INTERNAL VM CONFIGS ###
         # Network interface used to set ip for a VM
@@ -78,7 +78,7 @@ class MachineConfig:
 
 class TasConfig:
     def __init__(self, pane, machine_config, project_dir, ip, n_cores, 
-            dpdk_extra="d8:00.0"):
+            dpdk_extra="d8:00.0", cc="timely", cc_timely_min_rtt="15"):
         self.name = "server" if machine_config. is_server else "client"
         
         self.project_dir = project_dir
@@ -97,10 +97,13 @@ class TasConfig:
         self.lib_so = self.comp_dir + 'lib/libtas_interpose.so'
         self.exec_file = self.comp_dir + '/tas/tas'
         self.args = '--ip-addr={}/24 --fp-cores-max={}'.format(ip, n_cores) + \
-            ' --cc=const-rate --cc-const-rate=0 ' + \
             ' --fp-no-autoscale --fp-no-ints' + \
+            ' --cc={}'.format(cc) + \
             ' --dpdk-extra="-a{}"'.format(dpdk_extra)   
         
+        if cc == "timely":
+            self.args = self.args + " --cc-timely-minrtt={}".format(cc_timely_min_rtt)
+
         self.pane = pane
         self.ip = ip
         self.n_cores = n_cores
@@ -120,10 +123,10 @@ class VMConfig:
         self.memory = memory
         self.n_queues = n_queues
         if machine_config.is_server:
-            self.vm_ip = '192.168.10.{}'.format(40 + idx)
+            self.vm_ip = '192.168.10.{}'.format(30 + idx)
             self.tas_tap_ip = '10.0.1.{}'.format(1 + idx)
         else:
-            self.vm_ip = '192.168.10.{}'.format(60 + idx)
+            self.vm_ip = '192.168.10.{}'.format(50 + idx)
             self.tas_tap_ip = '10.0.1.{}'.format(20 + idx)
 
 class ContainerConfig:
