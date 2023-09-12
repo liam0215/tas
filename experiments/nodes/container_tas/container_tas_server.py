@@ -33,7 +33,8 @@ class ContainerTasServer(ContainerTas):
                                 server_config,
                                 container_config,
                                 self.wmanager)
-                server.run_virt(False, True)
+                server.run_virt(True, True)
+                server.pane.send_keys("tas")
                 time.sleep(3)
 
     def run(self):
