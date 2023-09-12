@@ -39,7 +39,7 @@ class Config:
                                machine_config=self.s_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
                                ip=self.s_machine_config.ip,
-                               n_cores=10, dpdk_extra="86:00.0")
+                               n_cores=10, dpdk_extra="86:00.0", tunnel=self.tunnel)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
 
         self.s_container_configs.append(container0_config)
@@ -76,10 +76,10 @@ class Config:
                                             memory=10,
                                             tunnel=self.tunnel)
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,
-                machine_config=self.c_machine_config,
-                project_dir=self.defaults.default_vtas_dir_bare,
-                ip=self.c_machine_config.ip,
-                n_cores=10, dpdk_extra="d8:00.0")
+                               machine_config=self.c_machine_config,
+                               project_dir=self.defaults.default_vtas_dir_bare,
+                               ip=self.c_machine_config.ip,
+                               n_cores=10, dpdk_extra="d8:00.0", tunnel=self.tunnel)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
 
         self.c_container_configs.append(container0_config)

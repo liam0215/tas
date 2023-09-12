@@ -78,7 +78,7 @@ class MachineConfig:
 
 class TasConfig:
     def __init__(self, pane, machine_config, project_dir, ip, n_cores, 
-            dpdk_extra="d8:00.0", cc="timely", cc_timely_min_rtt="15"):
+            dpdk_extra="d8:00.0", cc="timely", cc_timely_min_rtt="15", tunnel=False):
         self.name = "server" if machine_config. is_server else "client"
         
         self.project_dir = project_dir
@@ -93,6 +93,8 @@ class TasConfig:
         
         self.comp_dir = self.project_dir
         self.comp_cmd = 'make -j6'
+        if tunnel:
+            self.comp_cmd += ' EXTRA_CFLAGS=-DVIRTUOSO_GRE'
         self.clean_cmd = 'make clean'
         self.lib_so = self.comp_dir + 'lib/libtas_interpose.so'
         self.exec_file = self.comp_dir + '/tas/tas'
