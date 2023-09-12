@@ -18,7 +18,7 @@ veth_container_ip=$7
 sudo ip link add $veth_name_container numrxqueues $n_queues numtxqueues $n_queues type veth \
     peer name $veth_name_bridge numrxqueues $n_queues numtxqueues $n_queues
 
-PID=$(docker inspect -f '{{.State.Pid}}' $container_name)
+PID=$(sudo docker inspect -f '{{.State.Pid}}' $container_name)
 sudo ip link set netns $PID dev $veth_name_container
 sudo ovs-vsctl add-port $br_name $veth_name_bridge
 

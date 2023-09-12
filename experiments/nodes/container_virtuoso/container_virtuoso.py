@@ -18,6 +18,7 @@ class ContainerVirtuoso(Node):
         cleanup_pane_name,
         interface,
         pci_id,
+        tunnel,
     ):
         Node.__init__(
             self, defaults, machine_config, wmanager, setup_pane_name, cleanup_pane_name
@@ -30,11 +31,16 @@ class ContainerVirtuoso(Node):
         self.interface = interface
         self.pci_id = pci_id
         self.script_dir = container_configs[0].manager_dir
+        self.tunnel = tunnel
 
     def cleanup(self):
         super().cleanup()
         if self.tas:
             self.tas.cleanup(self.cleanup_pane)
+
+        if self.tunnel:
+            self.ovsbr_del("br0")
+            self.stop_ovs(self.script_dir)
 
         for container in self.containers:
             container.shutdown()

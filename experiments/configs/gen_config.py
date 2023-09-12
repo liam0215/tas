@@ -131,19 +131,20 @@ class VMConfig:
 
 class ContainerConfig:
     def __init__(self, pane, machine_config, vtas_dir, vtas_dir_virt, tas_dir, idx, n_cores,
-                 memory, n_queues=1):
+                 memory, n_queues=1, tunnel=False):
         self.name = (
             "server_{}".format(idx)
             if machine_config.is_server
             else "client_{}".format(idx)
         )   
-     
+
         self.pane = pane
         self.id = idx
 
         self.n_cores = n_cores
         self.memory = memory
         self.n_queues = n_queues
+        self.tunnel = tunnel
 
         self.tas_dir = tas_dir
         self.manager_dir = vtas_dir + '/images'

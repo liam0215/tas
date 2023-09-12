@@ -11,6 +11,7 @@ class Config:
         self.exp_name = exp_name
         self.defaults = Defaults()
 
+        self.tunnel = True
         # Server Machine
         self.sstack = 'container-virtuoso'
         self.snum = 1
@@ -32,7 +33,8 @@ class Config:
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
                                             n_cores=11,
-                                            memory=10)
+                                            memory=10,
+                                            tunnel=self.tunnel)
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
                                machine_config=self.s_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
@@ -71,7 +73,8 @@ class Config:
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
                                             n_cores=11,
-                                            memory=10)
+                                            memory=10,
+                                            tunnel=self.tunnel)
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,
                 machine_config=self.c_machine_config,
                 project_dir=self.defaults.default_vtas_dir_bare,

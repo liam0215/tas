@@ -20,12 +20,23 @@ class Container:
 
         print("Started Container")
         time.sleep(3)
+        if self.container_config.tunnel:
+            self.add_dummy_intf(
+                self, "eth0", self.container_config.veth_container_ip, "C8:D7:4A:4E:47:50")
         self.enter_container()
 
     def enter_container(self):
         enter_container_cmd = "sudo docker exec -it {} bash".format(
             self.container_config.name)
         self.pane.send_keys(enter_container_cmd)
+        time.sleep(1)
+
+    def add_dummy_intf(self, interface, ip, mac):
+        cmd = 'cd ' + self.container_config.manager_dir
+        self.pane.send_keys(cmd)
+        cmd = "bash container-dummy-intf-add.sh {} {} {}".format(
+            interface, ip, mac, self.container_config.name)
+        self.pane.send_keys(cmd)
         time.sleep(1)
 
     def shutdown(self):
