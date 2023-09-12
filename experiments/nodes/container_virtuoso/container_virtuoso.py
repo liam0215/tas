@@ -38,7 +38,7 @@ class ContainerVirtuoso(Node):
 
         for container in self.containers:
             container.shutdown()
-    
+
     def start_tas(self):
         for i in range(self.nodenum):
             tas_config = self.tas_configs[i]
@@ -50,7 +50,7 @@ class ContainerVirtuoso(Node):
                       wmanager=self.wmanager)
 
             self.tas.append(tas)
-            tas.run_virt()
+            tas.run_bare()
             time.sleep(3)
 
     def start_containers(self):

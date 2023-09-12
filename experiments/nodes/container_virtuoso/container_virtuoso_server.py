@@ -9,14 +9,14 @@ class ContainerVirtuosoServer(ContainerVirtuoso):
     def __init__(self, config, wmanager):
 
         ContainerVirtuoso.__init__(self, config.defaults, config.s_machine_config,
-                                  config.s_container_configs,
-                                  config.s_tas_configs,
-                                  wmanager,
-                                  config.defaults.s_setup_pane,
-                                  config.defaults.s_cleanup_pane,
-                                  config.defaults.server_interface,
-                                  config.defaults.server_interface_pci,
-                                  )
+                                   config.s_container_configs,
+                                   config.s_tas_configs,
+                                   wmanager,
+                                   config.defaults.s_setup_pane,
+                                   config.defaults.s_cleanup_pane,
+                                   config.defaults.server_interface,
+                                   config.defaults.server_interface_pci,
+                                   )
 
         self.server_configs = config.server_configs
         self.nodenum = config.snodenum
@@ -33,6 +33,8 @@ class ContainerVirtuosoServer(ContainerVirtuoso):
                                 server_config,
                                 container_config,
                                 self.wmanager)
+                server.pane.send_keys(
+                    "export TAS_GROUP={}".format(server_config.groupid))
                 server.run_virt(True, True)
                 server.pane.send_keys("tas")
                 time.sleep(3)
