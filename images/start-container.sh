@@ -19,7 +19,7 @@ if [[ "$stack" == 'container-ovs-dpdk' ]]; then
     -d $image_name sleep infinity;
 elif [[ "$stack" == 'container-tas' ]]; then
     sudo docker run --net=none --name $container_name \
-    -v ${tas_dir}flexnic_os:/home/tas/projects/otas/tas/flexnic_os \
+    -v ${tas_dir}/flexnic_os:/home/tas/projects/otas/tas/flexnic_os \
     -v /dev/hugepages:/dev/hugepages \
     -v /dev/shm:/dev/shm \
     -v ${tas_dir}/lib/libtas_interpose.so:${otas_interpose_path_virt} \
