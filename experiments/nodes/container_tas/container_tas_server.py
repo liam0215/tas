@@ -10,7 +10,7 @@ class ContainerTasServer(ContainerTas):
 
         ContainerTas.__init__(self, config.defaults, config.s_machine_config,
                                   config.s_container_configs,
-                                  config.s_tas_configs,
+                                  config.s_tas_configs[0],
                                   wmanager,
                                   config.defaults.s_setup_pane,
                                   config.defaults.s_cleanup_pane,

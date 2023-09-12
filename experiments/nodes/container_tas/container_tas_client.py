@@ -9,7 +9,7 @@ class ContainerTasClient(ContainerTas):
 
     ContainerTas.__init__(self, config.defaults, config.c_machine_config,
                                 config.c_container_configs,
-                                config.c_tas_configs,
+                                config.c_tas_configs[0],
                                 wmanager,
                                 config.defaults.c_setup_pane,
                                 config.defaults.c_cleanup_pane,

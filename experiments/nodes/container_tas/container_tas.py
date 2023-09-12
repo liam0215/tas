@@ -12,7 +12,7 @@ class ContainerTas(Node):
         defaults,
         machine_config,
         container_configs,
-        tas_configs,
+        tas_config,
         wmanager,
         setup_pane_name,
         cleanup_pane_name,
@@ -25,33 +25,27 @@ class ContainerTas(Node):
 
         self.container_configs = container_configs
         self.containers = []
-        self.tas_configs = tas_configs
-        self.tas = []
+        self.tas_config = tas_config
+        self.tas = None
         self.interface = interface
         self.pci_id = pci_id
         self.script_dir = container_configs[0].manager_dir
 
     def cleanup(self):
         super().cleanup()
-        for tas in self.tas:
-            tas.cleanup(self.cleanup_pane)
+        if self.tas:
+            self.tas.cleanup(self.cleanup_pane)
 
         for container in self.containers:
             container.shutdown()
     
     def start_tas(self):
-        for i in range(self.nodenum):
-            tas_config = self.tas_configs[i]
-
-            tas = TAS(defaults=self.defaults,
-                      machine_config=self.machine_config,
-                      tas_config=tas_config,
-                      vm_config=self.container_configs[i],
-                      wmanager=self.wmanager)
-
-            self.tas.append(tas)
-            tas.run_bare()
-            time.sleep(3)
+        self.tas = TAS(defaults=self.defaults,
+                    machine_config=self.machine_config,
+                    tas_config=self.tas_config,
+                    wmanager=self.wmanager)
+        self.tas.run_bare()
+        time.sleep(3)
 
     def start_containers(self):
         threads = []
