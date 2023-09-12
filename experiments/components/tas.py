@@ -62,5 +62,5 @@ class TAS:
         os.rename(self.tas_config.out, dest)
     
     def cleanup(self, pane):
-        remove_tas_socket_com = "rm {}".format(self.tas_config.project_dir + "/flexnic_os")
+        remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
         pane.send_keys(remove_tas_socket_com)
