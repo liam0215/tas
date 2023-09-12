@@ -1,4 +1,3 @@
-import time
 import threading
 
 from components.container import Container
@@ -54,7 +53,7 @@ class ContainerOVSDPDK(Node):
             )
 
         self.ovsbr_add_port(self.bridge_name, self.machine_config.interface)
-        self.set_dpdk_interface(self.interface, self.pci_id)
+        self.set_dpdk_interface(self.interface, self.pci_id, self.container_configs[0].n_queues)
         self.add_ip(self.bridge_name, self.machine_config.ip + "/24")
         self.interface_up(self.bridge_name)
 

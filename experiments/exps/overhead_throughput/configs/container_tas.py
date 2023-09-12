@@ -1,5 +1,6 @@
 from configs.gen_config import Defaults
 from configs.gen_config import MachineConfig
+from configs.gen_config import TasConfig
 from configs.gen_config import ContainerConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
@@ -11,10 +12,11 @@ class Config:
         self.defaults = Defaults()
 
         # Server Machine
-        self.sstack = 'container-ovs-dpdk'
+        self.sstack = 'container-tas'
         self.snum = 1
         self.snodenum = 1
         self.s_container_configs = []
+        self.s_tas_configs = []
         self.server_configs = []
 
         self.s_machine_config = MachineConfig(ip=self.defaults.server_ip,
@@ -27,13 +29,19 @@ class Config:
                                             machine_config=self.s_machine_config,
                                             vtas_dir=self.defaults.default_vtas_dir_bare,
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
-                                            tas_dir=self.defaults.default_vtas_dir_bare,
+                                            tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
                                             n_cores=22,
                                             memory=10,
                                             n_queues=10)
+        tas_config = TasConfig(pane=self.defaults.s_tas_pane,
+                               machine_config=self.s_machine_config,
+                               project_dir=self.defaults.default_otas_dir_bare,
+                               ip=self.s_machine_config.ip,
+                               n_cores=10, dpdk_extra="86:00.0")
 
         self.s_container_configs.append(container0_config)
+        self.s_tas_configs.append(tas_config)
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                                       idx=0, vmid=0,
@@ -43,10 +51,11 @@ class Config:
         self.server_configs.append(server0_config)
 
         # Client Machine
-        self.cstack = 'container-ovs-dpdk'
+        self.cstack = 'container-tas'
         self.cnum = 1
         self.cnodenum = 1
         self.c_container_configs = []
+        self.c_tas_configs = []
         self.client_configs = []
 
         self.c_machine_config = MachineConfig(ip=self.defaults.client_ip,
@@ -59,13 +68,19 @@ class Config:
                                             machine_config=self.c_machine_config,
                                             vtas_dir=self.defaults.default_vtas_dir_bare,
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
-                                            tas_dir=self.defaults.default_vtas_dir_bare,
+                                            tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
                                             n_cores=22,
                                             memory=10,
                                             n_queues=10)
+        tas_config = TasConfig(pane=self.defaults.c_tas_pane,
+                machine_config=self.c_machine_config,
+                project_dir=self.defaults.default_otas_dir_bare,
+                ip=self.c_machine_config.ip,
+                n_cores=10, dpdk_extra="d8:00.0")
 
         self.c_container_configs.append(container0_config)
+        self.c_tas_configs.append(tas_config)
 
         client0_config = ClientConfig(exp_name=exp_name,
                                       pane=self.defaults.c_client_pane,

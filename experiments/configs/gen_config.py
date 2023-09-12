@@ -130,7 +130,7 @@ class VMConfig:
             self.tas_tap_ip = '10.0.1.{}'.format(20 + idx)
 
 class ContainerConfig:
-    def __init__(self, pane, machine_config, tas_dir, tas_dir_virt, idx, n_cores,
+    def __init__(self, pane, machine_config, vtas_dir, vtas_dir_virt, tas_dir, idx, n_cores,
                  memory, n_queues=1):
         self.name = (
             "server_{}".format(idx)
@@ -145,8 +145,9 @@ class ContainerConfig:
         self.memory = memory
         self.n_queues = n_queues
 
-        self.manager_dir = tas_dir + '/images'
-        self.manager_dir_virt = tas_dir_virt + '/images'
+        self.tas_dir = tas_dir
+        self.manager_dir = vtas_dir + '/images'
+        self.manager_dir_virt = vtas_dir_virt + '/images'
 
         if machine_config.is_server:
             self.veth_bridge_ip = '192.168.10.{}'.format(40 + idx)

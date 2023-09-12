@@ -1,28 +1,26 @@
 import time
 
-from nodes.container_ovs_dpdk.container_ovs_dpdk import ContainerOVSDPDK
+from nodes.container_virtuoso.container_virtuoso import ContainerVirtuoso
 from components.client import Client
 
-class ContainerOVSDPDKClient(ContainerOVSDPDK):
+class ContainerVirtuosoClient(ContainerVirtuoso):
   
   def __init__(self, config, wmanager):
 
-    ContainerOVSDPDK.__init__(self, config.defaults, config.c_machine_config,
-                              config.c_container_configs,
-                              wmanager,
-                              config.defaults.c_setup_pane,
-                              config.defaults.c_cleanup_pane,
-                              config.defaults.server_interface,
-                              config.defaults.server_interface_pci,
-                              )
+    ContainerVirtuoso.__init__(self, config.defaults, config.c_machine_config,
+                                config.c_container_configs,
+                                config.c_tas_configs,
+                                wmanager,
+                                config.defaults.c_setup_pane,
+                                config.defaults.c_cleanup_pane,
+                                config.defaults.client_interface,
+                                config.defaults.client_interface_pci,
+                                )
 
     self.client_configs = config.client_configs
     self.nodenum = config.cnodenum
     self.cnum = config.cnum
     self.clients = []
-
-  def cleanup(self):
-    super().cleanup()
 
   def start_clients(self):
     for i in range(self.nodenum):
@@ -36,12 +34,13 @@ class ContainerOVSDPDKClient(ContainerOVSDPDK):
             container_config, 
             self.wmanager)
         self.clients.append(client)
-        client.run_virt(False, False)
+        client.run_virt(False, True)
         time.sleep(3)
 
   def run(self):
+    self.setup()
+    self.start_tas()
     self.start_containers()
-    self.setup(is_client=True)
     self.start_clients()
 
   def save_logs(self, exp_path):

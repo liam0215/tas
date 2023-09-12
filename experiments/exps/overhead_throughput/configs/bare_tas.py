@@ -28,7 +28,7 @@ class Config:
                 machine_config=self.s_machine_config,
                 project_dir=self.defaults.default_otas_dir_bare,
                 ip=self.s_machine_config.ip,
-                n_cores=10)
+                n_cores=10, dpdk_extra="86:00.0")
         tas_config.args = tas_config.args
         self.s_tas_configs.append(tas_config)
 
@@ -58,7 +58,7 @@ class Config:
                 machine_config=self.c_machine_config,
                 project_dir=self.defaults.default_otas_dir_bare,
                 ip=self.c_machine_config.ip,
-                n_cores=10)
+                n_cores=10, dpdk_extra="d8:00.0")
         tas_config.args = tas_config.args
         self.c_tas_configs.append(tas_config)
 

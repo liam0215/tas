@@ -1,15 +1,16 @@
 import time
 
-from nodes.container_ovs_dpdk.container_ovs_dpdk import ContainerOVSDPDK
+from nodes.container_virtuoso.container_virtuoso import ContainerVirtuoso
 from components.server import Server
 
 
-class ContainerOVSDPDKServer(ContainerOVSDPDK):
+class ContainerVirtuosoServer(ContainerVirtuoso):
 
     def __init__(self, config, wmanager):
 
-        ContainerOVSDPDK.__init__(self, config.defaults, config.s_machine_config,
+        ContainerVirtuoso.__init__(self, config.defaults, config.s_machine_config,
                                   config.s_container_configs,
+                                  config.s_tas_configs,
                                   wmanager,
                                   config.defaults.s_setup_pane,
                                   config.defaults.s_cleanup_pane,
@@ -32,10 +33,11 @@ class ContainerOVSDPDKServer(ContainerOVSDPDK):
                                 server_config,
                                 container_config,
                                 self.wmanager)
-                server.run_virt(False, False)
+                server.run_virt(False, True)
                 time.sleep(3)
 
     def run(self):
-        self.start_containers()
         self.setup()
+        self.start_tas()
+        self.start_containers()
         self.start_servers()
