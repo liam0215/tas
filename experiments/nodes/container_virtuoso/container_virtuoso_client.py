@@ -34,7 +34,8 @@ class ContainerVirtuosoClient(ContainerVirtuoso):
             container_config, 
             self.wmanager)
         self.clients.append(client)
-        client.run_virt(False, True)
+        client.run_virt(True, True)
+        client.pane.send_keys("tas")
         time.sleep(3)
 
   def run(self):

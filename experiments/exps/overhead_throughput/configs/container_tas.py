@@ -85,7 +85,7 @@ class Config:
         client0_config = ClientConfig(exp_name=exp_name,
                                       pane=self.defaults.c_client_pane,
                                       idx=0, vmid=0, stack=self.cstack,
-                                      ip=self.s_container_configs[0].veth_container_ip, port=1234, ncores=10,
+                                      ip=self.defaults.server_ip, port=1234, ncores=10,
                                       msize=msize, mpending=64, nconns=1000,
                                       open_delay=3, max_msgs_conn=0, max_pend_conns=1,
                                       bench_dir=self.defaults.default_obenchmark_dir_virt,
