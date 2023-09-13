@@ -9,10 +9,11 @@ class VirtTas(Node):
   
   def __init__(self, defaults, machine_config, tas_config,
       proxyh_config, vm_configs, proxyg_configs,
+      cset_configs,
       wmanager, setup_pane_name, cleanup_pane_name):
 
-    Node.__init__(self, defaults, machine_config, wmanager, 
-        setup_pane_name, cleanup_pane_name)
+    Node.__init__(self, defaults, machine_config, cset_configs,
+        wmanager, setup_pane_name, cleanup_pane_name)
         
     self.tas_config = tas_config
     self.proxyh_config = proxyh_config

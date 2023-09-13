@@ -5,7 +5,6 @@ import os
 import numpy as np
 import experiments.plot_utils as putils
 
-
 def check_msize(data, msize):
   if msize not in data:
     data[msize] = {}
@@ -44,16 +43,18 @@ def get_avg_tp(fname_c0, fname_c1):
   msize = int(putils.get_msize(fname_c0))
   n = len(lines) - idx
 
-  return (n_messages * msize * 8 / n) / 1000000
+  return n_messages / n
+  # return (n_messages * msize * 8 / n) / 1000000
 
 def parse_metadata():
   dir_path = "./out/"
   data = {}
 
+  putils.remove_cset_dir(dir_path)
   for f in os.listdir(dir_path):
     fname = os.fsdecode(f)
 
-    if "tas_c" in fname or "latency_hist" in fname:
+    if "tas_c" == fname or "latency_hist" in fname:
       continue
 
     run = putils.get_expname_run(fname)
@@ -105,18 +106,18 @@ def parse_data(parsed_md):
 def save_dat_file(data, fname):
   f = open(fname, "w+")
   header = "msize " + \
-      "bare-tas-avg bare-vtas-avg virt-tas-avg " + \
-      "ovs-linux-avg " + \
-      "bare-tas-std bare-vtas-std virt-tas-std " + \
-      "ovs-linux-std\n"
+      "bare-tas-avg virt-tas-avg " + \
+      "ovs-tas-avg ovs-linux-avg " + \
+      "bare-tas-std virt-tas-std " + \
+      "ovs-tas-std ovs-linux-std\n"
   f.write(header)
   for dp in data:
     f.write("{} {} {} {} {} {} {} {} {}\n".format(
       dp["msize"],
-      dp["bare-tas"]["tp"], dp["bare-vtas"]["tp"], dp["virt-tas"]["tp"],
-      dp["ovs-linux"]["tp"],
-      dp["bare-tas"]["std"], dp["bare-vtas"]["std"], dp["virt-tas"]["std"],
-      dp["ovs-linux"]["std"]))
+      dp["bare-tas"]["tp"], dp["virt-tas"]["tp"],
+      dp["ovs-tas"]["tp"], dp["ovs-linux"]["tp"],
+      dp["bare-tas"]["std"], dp["virt-tas"]["std"],
+      dp["ovs-tas"]["std"], dp["ovs-linux"]["std"]))
         
 def main():
   parsed_md = parse_metadata()

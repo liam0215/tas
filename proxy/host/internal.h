@@ -3,6 +3,8 @@
 
 #include <tas_pxy.h>
 
+#define VM_BATCH_SIZE 16
+
 struct v_machine {
     int id;  
     /* Connection fd */
@@ -26,10 +28,12 @@ struct host_proxy {
   int block_epfd;
   int uxfd;
   int next_vm_id;
+  int next_vm_poll;
   int next_app_id[FLEXNIC_PL_VMST_NUM];
-  struct v_machine vms[10];
+  struct v_machine vms[FLEXNIC_PL_VMST_NUM];
 
   /* Used to sleep proxy */
+  uint8_t block;
   uint64_t block_elapsed;
   uint64_t poll_cycles_proxy;
 };

@@ -40,6 +40,7 @@
 #include <utils.h>
 #include <utils_rng.h>
 #include <tas_memif.h>
+#include <virtuoso.h>
 #include "internal.h"
 
 #define MAX_PATTERN_IN_FLOW 10
@@ -277,11 +278,13 @@ int network_thread_init(struct dataplane_context *ctx)
     }
 
     /* Configure inner header RSS */
-    if (config.fp_rss) {
-      if (add_rss_flow_rule(num_threads) < 0) {
-        fprintf(stderr, "RSS disabled\n");
+    #if VIRTUOSO_GRE
+      if (config.fp_rss) {
+        if (add_rss_flow_rule(num_threads) < 0) {
+          fprintf(stderr, "RSS disabled\n");
+        }
       }
-    }
+    #endif
 
     /* enable vlan stripping if configured */
     if (config.fp_vlan_strip) {
@@ -593,12 +596,14 @@ static struct rte_flow * add_rss_inbound_flow_rule(int n_threads)
   pattern[5].type = RTE_FLOW_ITEM_TYPE_END;
 
   /* Create queue action */
-  create_queue_idxs(num_threads, queue_idxs);
   struct rte_flow_action_rss rss = { .level = 2,
-      .types = ETH_RSS_NONFRAG_IPV4_TCP,
-      .queue_num = n_threads,
-      .queue = queue_idxs,
+    .types = ETH_RSS_NONFRAG_IPV4_TCP,
+    .queue_num = n_threads,
+    .queue = queue_idxs,
   };
+
+  create_queue_idxs(num_threads, queue_idxs);
+
 
   actions[0].type = RTE_FLOW_ACTION_TYPE_RSS;
   actions[0].conf = &rss;

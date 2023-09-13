@@ -2,9 +2,10 @@ import time
 
 class Node:
   
-  def __init__(self, defaults, machine_config, 
+  def __init__(self, defaults, machine_config, cset_configs,
       wmanager, setup_pane_name, cleanup_pane_name):
     self.defaults = defaults
+    self.cset_configs = cset_configs
     self.machine_config = machine_config
     self.wmanager = wmanager
     self.setup_pane_name = setup_pane_name
@@ -13,10 +14,30 @@ class Node:
   def setup(self):
     self.setup_pane = self.wmanager.add_new_pane(self.setup_pane_name, 
         self.machine_config.is_remote)
+    
+    for cset in self.cset_configs:
+        self.set_cset(cset.cores_arg, cset.mem, cset.name, cset.exclusive)
 
   def cleanup(self):
     self.cleanup_pane = self.wmanager.add_new_pane(self.cleanup_pane_name, 
         self.machine_config.is_remote)
+    
+    for cset in self.cset_configs:
+       self.destroy_cset(cset.name)
+
+  def set_cset(self, cores_arg, mem, name, exclusive):
+    if exclusive:
+        cmd = "sudo cset set --cpu={} --mem={} --set={} --cpu_exclusive".format(cores_arg, mem, name)
+    else:
+        cmd = "sudo cset set --cpu={} --mem={} --set={}".format(cores_arg, mem, name)
+
+    self.setup_pane.send_keys(cmd)
+    time.sleep(2)
+
+  def destroy_cset(self, name):
+     cmd = "sudo cset set --destroy --set={}".format(name)
+     self.cleanup_pane.send_keys(cmd)
+     time.sleep(2)
 
   def add_ip_in_pane(self, pane, interface, ip):
     cmd = "sudo ip addr add {} dev {}".format(ip, interface)
@@ -122,11 +143,11 @@ class Node:
       self.cleanup_pane.send_keys(cmd)
       time.sleep(2)
 
-  def start_ovsdpdk(self, script_dir):
+  def start_ovsdpdk(self, pmd_mask, script_dir):
       cmd = "cd {}".format(script_dir)
       self.setup_pane.send_keys(cmd)
       time.sleep(1)
-      cmd = "sudo bash ovsdpdk-start.sh"
+      cmd = "sudo bash ovsdpdk-start.sh {}".format(pmd_mask)
       self.setup_pane.send_keys(cmd)
       time.sleep(4)
 

@@ -40,6 +40,7 @@ struct guest_proxy *guest_init_proxy()
   pxy->epfd = -1;
   pxy->ctxreq_id_next = 0;
   
+  pxy->block = 0;
   pxy->block_epfd = -1;
   pxy->block_elapsed = 0;
   pxy->poll_cycles_proxy = 10000;
@@ -61,6 +62,21 @@ int main(int argc, char *argv[])
   struct epoll_event evs[1];
   struct guest_proxy *pxy = guest_init_proxy();
 
+  if (argc > 3)
+  {
+    fprintf(stderr, "Usage: ./guest [BLOCK] [SLEEP_POLL_CYCLES]\n");
+    return EXIT_FAILURE;
+  }
+
+  if (argc == 2)
+  {
+    pxy->block = atoi(argv[1]);
+  }
+
+  if (argc == 3) {
+    pxy->poll_cycles_proxy = atoi(argv[2]);
+  }
+
   if (ivshmem_init(pxy) < 0)
   {
     fprintf(stderr, "main: ivshmem_init failed.\n");
@@ -78,7 +94,7 @@ int main(int argc, char *argv[])
   {
     n = 0;
 
-    if (pxy->block_elapsed > pxy->poll_cycles_proxy)
+    if (pxy->block_elapsed > pxy->poll_cycles_proxy && pxy->block)
     {
       epoll_wait(pxy->block_epfd, evs, 1, -1);
     }

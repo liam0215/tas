@@ -14,5 +14,5 @@ class BareTas(Node):
 
     def cleanup(self):
         super().cleanup()
-        remove_tas_socket_com = "rm {}".format(self.tas_config.project_dir + "/flexnic_os")
+        remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
         self.cleanup_pane.send_keys(remove_tas_socket_com)

@@ -7,7 +7,8 @@ vm_id=$2
 interface=$3
 n_cores=$4
 memory=$5 # In Gigabytes
-n_queues=$6
+cset=$6
+n_queues=$7
 
 stty intr ^]
 stty susp ^]
@@ -27,7 +28,6 @@ if [ -n "$n_queues" ]; then
   vectors=$(( n_queues*2 + 2 ))
 fi
 
-
 printf -v mac '02:00:00:%02X:%02X:%02X' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256))
 printf -v alt_mac '02:00:00:%02X:%02X:%02X' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256))
 
@@ -37,8 +37,8 @@ echo $alt_mac
 # Note: vectors=<2 + 2 * queues_nr>
 
 if [[ "$stack" == 'virt-tas' ]]; then
-  taskset -c 23,25,27,29,31,33,35,37,39,41,43 \
-  sudo qemu-system-x86_64 \
+  sudo cset proc --set=$cset --exec \
+  qemu-system-x86_64 -- \
     -nographic -monitor none -serial stdio \
     -machine accel=kvm,type=q35 \
     -cpu host \
@@ -53,8 +53,8 @@ if [[ "$stack" == 'virt-tas' ]]; then
     -drive if=virtio,format=raw,file="seed.img" \
     ;
 elif [[ "$stack" == 'virt-linux' ]]; then
-  taskset -c 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
-  sudo qemu-system-x86_64 \
+  sudo cset proc --set=$cset --exec \
+  qemu-system-x86_64 -- \
       -nographic -monitor none -serial stdio \
       -machine accel=kvm,type=q35 \
       -cpu host \
@@ -69,8 +69,8 @@ elif [[ "$stack" == 'virt-linux' ]]; then
       -drive if=virtio,format=raw,file="seed.img" \
       ;
 elif [[ "$stack" == 'ovs-linux' ]]; then
-  taskset -c 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
-    sudo qemu-system-x86_64 \
+  sudo cset proc --set=$cset --exec \
+  qemu-system-x86_64 -- \
     -nographic -monitor none -serial stdio \
     -machine accel=kvm,type=q35 \
     -cpu host \
@@ -82,14 +82,14 @@ elif [[ "$stack" == 'ovs-linux' ]]; then
     -chardev socket,id=char0,path=/usr/local/var/run/openvswitch/$vhost \
     -netdev type=vhost-user,chardev=char0,vhostforce=on,queues=$n_queues,id=net1 \
     -device virtio-net-pci,netdev=net1,mac=$alt_mac,mq=on,vectors=$vectors \
-    -object memory-backend-file,id=mem,size=10G,mem-path=/dev/hugepages,share=on \
+    -object memory-backend-file,id=mem,size=${memory}G,mem-path=/dev/hugepages,share=on \
     -numa node,memdev=mem -mem-prealloc \
     -drive if=virtio,format=raw,file="base.img" \
     -drive if=virtio,format=raw,file="seed.img" \
     ;
 elif [[ "$stack" == 'ovs-tas' ]]; then
-  taskset -c 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
-  sudo qemu-system-x86_64 \
+  sudo cset proc --set=$cset --exec \
+  qemu-system-x86_64 -- \
     -nographic -monitor none -serial stdio \
     -machine accel=kvm,type=q35 \
     -cpu host \
@@ -101,14 +101,14 @@ elif [[ "$stack" == 'ovs-tas' ]]; then
     -chardev socket,id=char0,path=/usr/local/var/run/openvswitch/$vhost \
     -netdev type=vhost-user,chardev=char0,vhostforce=on,queues=$n_queues,id=net1 \
     -device virtio-net-pci,netdev=net1,mac=$alt_mac,mq=on,vectors=$vectors,rss=on,hash=on \
-    -object memory-backend-file,id=mem,size=10G,mem-path=/dev/hugepages,share=on \
+    -object memory-backend-file,id=mem,size=${memory}G,mem-path=/dev/hugepages,share=on \
     -numa node,memdev=mem -mem-prealloc \
     -drive if=virtio,format=raw,file="base.img" \
     -drive if=virtio,format=raw,file="seed.img" \
     ;
 elif [[ "$stack" == 'tap-tas' ]]; then
-  taskset -c 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
-  sudo qemu-system-x86_64 \
+  sudo cset proc --set=$cset --exec \
+  qemu-system-x86_64 -- \
     -nographic -monitor none -serial stdio \
     -machine accel=kvm,type=q35 \
     -cpu host \
@@ -125,8 +125,8 @@ elif [[ "$stack" == 'tap-tas' ]]; then
     -drive if=virtio,format=raw,file="seed.img" \
     ;
 elif [[ "$stack" == 'gre' ]]; then
-  taskset -c 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
-  sudo qemu-system-x86_64 \
+  sudo cset proc --set=$cset --exec \
+  qemu-system-x86_64 -- \
     -nographic -monitor none -serial stdio \
     -machine accel=kvm,type=q35 \
     -cpu host \

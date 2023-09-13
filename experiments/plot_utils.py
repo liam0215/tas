@@ -1,5 +1,6 @@
-import numpy as np
+import os
 import re
+import numpy as np
 
 def init_latencies():
   latencies = {
@@ -71,15 +72,30 @@ def get_latency_std(latencies):
     "99.99p": latencies["99.99p"].std()
   }
 
+def get_expname_overlap(fname):
+  regex = "(?<=-overlap)[0-9]*"
+  msize = re.search(regex, fname).group(0)
+  return msize
+
+def get_expname_flowlen(fname):
+  regex = "(?<=-flowlen)[0-9]*"
+  flowlen = re.search(regex, fname).group(0)
+  return flowlen
+
 def get_expname_msize(fname):
   regex = "(?<=-msize)[0-9]*"
   msize = re.search(regex, fname).group(0)
   return msize
 
+def get_expname_n_vms(fname):
+  regex = "(?<=-vms)[0-9]*"
+  n_vms = re.search(regex, fname).group(0)
+  return n_vms
+
 def get_expname_fpcores(fname):
   regex = "(?<=-fpcores)[0-9]*"
-  msize = re.search(regex, fname).group(0)
-  return msize
+  fpcores = re.search(regex, fname).group(0)
+  return fpcores
 
 def get_expname_run(fname):
   run_id_regex = "(?<=-run)[0-9]*"
@@ -222,3 +238,20 @@ def get_min_idx(path, c1_first_ts):
       return idx, ts
 
   return -1, -1
+
+def remove_cset_dir(dir_path):
+  for f in os.listdir(dir_path):
+    fname = os.fsdecode(f)
+    fname = dir_path + fname
+    remove_cset(fname)
+
+def remove_cset(path):
+  with open(path, "r") as f:
+    with open("temp", "w") as temp:
+      lines = f.readlines()
+
+      for l in lines:
+        if "cset:" not in l:
+          temp.write(l)
+
+  os.replace("temp", path)
