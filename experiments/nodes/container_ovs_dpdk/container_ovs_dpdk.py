@@ -19,7 +19,7 @@ class ContainerOVSDPDK(Node):
         bridge_name="br-int",
     ):
         Node.__init__(
-            self, defaults, cset_configs, machine_config, wmanager, setup_pane_name, cleanup_pane_name
+            self, defaults, machine_config, cset_configs, wmanager, setup_pane_name, cleanup_pane_name
         )
 
         self.container_configs = container_configs
@@ -33,7 +33,7 @@ class ContainerOVSDPDK(Node):
     def setup(self, is_client=False):
         super().setup()
         self.ovs_make_install(self.defaults.original_ovs_path)
-        self.start_ovsdpdk(self.script_dir)
+        self.start_ovsdpdk(self.machine_config.ovs_pmd_mask, self.script_dir)
         self.ovsbr_add_internal(self.bridge_name, self.script_dir)
 
         for container_config in self.container_configs:

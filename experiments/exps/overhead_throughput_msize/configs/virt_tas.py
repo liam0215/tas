@@ -48,7 +48,8 @@ class Config:
                 ip=self.s_machine_config.ip,
                 cset="tas_server",
                 n_cores=5,
-                pci="86:00.0")
+                pci="86:00.0",
+                tunnel=True)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
         self.s_tas_configs.append(tas_config)
 
@@ -102,7 +103,8 @@ class Config:
                 project_dir=self.defaults.default_vtas_dir_bare,
                 ip=self.c_machine_config.ip,
                 cset="tas_client",
-                n_cores=5)
+                n_cores=5,
+                tunnel=True)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
         self.c_tas_configs.append(tas_config)
 

@@ -22,7 +22,7 @@ class ContainerVirtuoso(Node):
         tunnel,
     ):
         Node.__init__(
-            self, defaults, cset_configs, machine_config, wmanager, setup_pane_name, cleanup_pane_name
+            self, defaults, machine_config, cset_configs, wmanager, setup_pane_name, cleanup_pane_name
         )
 
         self.container_configs = container_configs
@@ -38,6 +38,9 @@ class ContainerVirtuoso(Node):
         super().cleanup()
         if self.tas:
             self.tas.cleanup(self.cleanup_pane)
+        else:
+            remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
+            self.cleanup_pane.send_keys(remove_tas_socket_com)
 
         if self.tunnel:
             self.ovsbr_del("br0")

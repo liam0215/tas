@@ -47,7 +47,7 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
-                                            n_cores=11,
+                                            n_cores=13,
                                             memory=10,
                                             tunnel=self.tunnel,
                                             cset="container0_server")
@@ -55,7 +55,7 @@ class Config:
                                machine_config=self.s_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
                                ip=self.s_machine_config.ip,
-                               n_cores=10, pci="86:00.0", tunnel=self.tunnel,
+                               n_cores=5, pci="86:00.0", tunnel=self.tunnel,
                                cset="tas_server")
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
 
@@ -64,7 +64,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                                       idx=0, vmid=0,
-                                      port=1234, ncores=10, max_flows=4096, max_bytes=4096,
+                                      port=1234, ncores=12, max_flows=4096, max_bytes=4096,
                                       bench_dir=self.defaults.default_vbenchmark_dir_virt,
                                       tas_dir=self.defaults.default_vtas_dir_virt)
         self.server_configs.append(server0_config)
@@ -89,7 +89,7 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
-                                            n_cores=11,
+                                            n_cores=13,
                                             memory=10,
                                             tunnel=self.tunnel,
                                             cset="container0_client")
@@ -97,7 +97,7 @@ class Config:
                                machine_config=self.c_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
                                ip=self.c_machine_config.ip,
-                               n_cores=10, pci="d8:00.0", tunnel=self.tunnel,
+                               n_cores=5, pci="d8:00.0", tunnel=self.tunnel,
                                cset="tas_client")
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
 
@@ -108,9 +108,9 @@ class Config:
         client0_config = ClientConfig(exp_name=exp_name,
                                       pane=self.defaults.c_client_pane,
                                       idx=0, vmid=0, stack=self.cstack,
-                                      ip=self.defaults.server_ip, port=1234, ncores=10,
-                                      msize=msize, mpending=64, nconns=1000,
-                                      open_delay=3, max_msgs_conn=0, max_pend_conns=1,
+                                      ip=self.defaults.server_ip, port=1234, ncores=12,
+                                      msize=msize, mpending=64, nconns=100,
+                                      open_delay=10, max_msgs_conn=0, max_pend_conns=1,
                                       bench_dir=self.defaults.default_vbenchmark_dir_virt,
                                       tas_dir=self.defaults.default_vtas_dir_virt)
 

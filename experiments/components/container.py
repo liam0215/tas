@@ -41,6 +41,7 @@ class Container:
 
     def shutdown(self):
         self.pane.send_keys(suppress_history=False, cmd='whoami')
+        time.sleep(1)
 
         captured_pane = self.pane.capture_pane()
         user = captured_pane[len(captured_pane) - 2]
@@ -49,7 +50,7 @@ class Container:
         # accidentally exit machine
         if user == 'tas':
             self.pane.send_keys(suppress_history=False, cmd='exit')
-            time.sleep(2)
+            time.sleep(3)
 
         kill_container_cmd = "sudo docker container kill {}".format(
             self.container_config.name)
