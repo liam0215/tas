@@ -10,6 +10,7 @@ class ContainerVirtuoso(Node):
     def __init__(
         self,
         defaults,
+        cset_configs,
         machine_config,
         container_configs,
         tas_config,
@@ -21,7 +22,7 @@ class ContainerVirtuoso(Node):
         tunnel,
     ):
         Node.__init__(
-            self, defaults, machine_config, wmanager, setup_pane_name, cleanup_pane_name
+            self, defaults, cset_configs, machine_config, wmanager, setup_pane_name, cleanup_pane_name
         )
 
         self.container_configs = container_configs

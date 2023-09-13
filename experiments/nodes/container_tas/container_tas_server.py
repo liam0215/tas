@@ -8,15 +8,16 @@ class ContainerTasServer(ContainerTas):
 
     def __init__(self, config, wmanager):
 
-        ContainerTas.__init__(self, config.defaults, config.s_machine_config,
-                                  config.s_container_configs,
-                                  config.s_tas_configs[0],
-                                  wmanager,
-                                  config.defaults.s_setup_pane,
-                                  config.defaults.s_cleanup_pane,
-                                  config.defaults.server_interface,
-                                  config.defaults.server_interface_pci,
-                                  )
+        ContainerTas.__init__(self, config.defaults, config.s_cset_configs,
+                              config.s_machine_config,
+                              config.s_container_configs,
+                              config.s_tas_configs[0],
+                              wmanager,
+                              config.defaults.s_setup_pane,
+                              config.defaults.s_cleanup_pane,
+                              config.defaults.server_interface,
+                              config.defaults.server_interface_pci,
+                              )
 
         self.server_configs = config.server_configs
         self.nodenum = config.snodenum

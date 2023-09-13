@@ -4,12 +4,27 @@ from configs.gen_config import TasConfig
 from configs.gen_config import ContainerConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
-
+from configs.gen_config import CSetConfig
 
 class Config:
     def __init__(self, exp_name, msize):
         self.exp_name = exp_name
         self.defaults = Defaults()
+
+        # Configure csets
+        self.s_cset_configs = []
+        self.c_cset_configs = []
+
+        tas_cset = CSetConfig([ i for i in range(1, 12, 2) ], "0-1", "tas_server")
+        self.s_cset_configs.append(tas_cset)
+        tas_cset = CSetConfig([ i for i in range(1, 12, 2) ], "0-1", "tas_client")
+        self.c_cset_configs.append(tas_cset)
+
+        container0_cset = CSetConfig(self.defaults.s_cores_s1, "0-1", "container0_server")
+        self.s_cset_configs.append(container0_cset)
+
+        container0_cset = CSetConfig(self.defaults.c_cores_s1, "0-1", "container0_client")
+        self.c_cset_configs.append(container0_cset)
 
         self.tunnel = True
         # Server Machine
@@ -34,12 +49,14 @@ class Config:
                                             idx=0,
                                             n_cores=11,
                                             memory=10,
-                                            tunnel=self.tunnel)
+                                            tunnel=self.tunnel,
+                                            cset="container0_server")
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
                                machine_config=self.s_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
                                ip=self.s_machine_config.ip,
-                               n_cores=10, dpdk_extra="86:00.0", tunnel=self.tunnel)
+                               n_cores=10, pci="86:00.0", tunnel=self.tunnel,
+                               cset="tas_server")
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
 
         self.s_container_configs.append(container0_config)
@@ -74,12 +91,14 @@ class Config:
                                             idx=0,
                                             n_cores=11,
                                             memory=10,
-                                            tunnel=self.tunnel)
+                                            tunnel=self.tunnel,
+                                            cset="container0_client")
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,
                                machine_config=self.c_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
                                ip=self.c_machine_config.ip,
-                               n_cores=10, dpdk_extra="d8:00.0", tunnel=self.tunnel)
+                               n_cores=10, pci="d8:00.0", tunnel=self.tunnel,
+                               cset="tas_client")
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
 
         self.c_container_configs.append(container0_config)

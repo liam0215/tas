@@ -4,12 +4,22 @@ from configs.gen_config import TasConfig
 from configs.gen_config import ContainerConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
-
+from configs.gen_config import CSetConfig
 
 class Config:
     def __init__(self, exp_name, msize):
         self.exp_name = exp_name
         self.defaults = Defaults()
+
+        # Configure csets
+        self.s_cset_configs = []
+        self.c_cset_configs = []
+
+        container0_cset = CSetConfig(self.defaults.s_cores_s1, "0-1", "container0_server")
+        self.s_cset_configs.append(container0_cset)
+
+        container0_cset = CSetConfig(self.defaults.c_cores_s1, "0-1", "container0_client")
+        self.c_cset_configs.append(container0_cset)
 
         # Server Machine
         self.sstack = 'container-tas'
@@ -33,12 +43,13 @@ class Config:
                                             idx=0,
                                             n_cores=22,
                                             memory=10,
-                                            n_queues=10)
+                                            n_queues=10,
+                                            cset="container0_server")
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
                                machine_config=self.s_machine_config,
                                project_dir=self.defaults.default_otas_dir_bare,
                                ip=self.s_machine_config.ip,
-                               n_cores=10, dpdk_extra="86:00.0")
+                               n_cores=10, pci="86:00.0")
 
         self.s_container_configs.append(container0_config)
         self.s_tas_configs.append(tas_config)
@@ -72,12 +83,13 @@ class Config:
                                             idx=0,
                                             n_cores=22,
                                             memory=10,
-                                            n_queues=10)
+                                            n_queues=10,
+                                            cset="container0_client")
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,
                 machine_config=self.c_machine_config,
                 project_dir=self.defaults.default_otas_dir_bare,
                 ip=self.c_machine_config.ip,
-                n_cores=10, dpdk_extra="d8:00.0")
+                n_cores=10, pci="d8:00.0")
 
         self.c_container_configs.append(container0_config)
         self.c_tas_configs.append(tas_config)

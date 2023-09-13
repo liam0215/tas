@@ -3,12 +3,22 @@ from configs.gen_config import MachineConfig
 from configs.gen_config import ContainerConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
-
+from configs.gen_config import CSetConfig
 
 class Config:
     def __init__(self, exp_name, msize):
         self.exp_name = exp_name
         self.defaults = Defaults()
+
+        # Configure csets
+        self.s_cset_configs = []
+        self.c_cset_configs = []
+
+        container0_cset = CSetConfig(self.defaults.s_cores_s1, "0-1", "container0_server")
+        self.s_cset_configs.append(container0_cset)
+
+        container0_cset = CSetConfig(self.defaults.c_cores_s1, "0-1", "container0_client")
+        self.c_cset_configs.append(container0_cset)
 
         # Server Machine
         self.sstack = 'container-ovs-dpdk'
@@ -31,7 +41,8 @@ class Config:
                                             idx=0,
                                             n_cores=22,
                                             memory=10,
-                                            n_queues=10)
+                                            n_queues=10,
+                                            cset="container0_server")
 
         self.s_container_configs.append(container0_config)
 
@@ -63,7 +74,8 @@ class Config:
                                             idx=0,
                                             n_cores=22,
                                             memory=10,
-                                            n_queues=10)
+                                            n_queues=10,
+                                            cset="container0_client")
 
         self.c_container_configs.append(container0_config)
 

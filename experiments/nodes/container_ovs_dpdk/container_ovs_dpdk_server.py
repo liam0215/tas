@@ -8,7 +8,8 @@ class ContainerOVSDPDKServer(ContainerOVSDPDK):
 
     def __init__(self, config, wmanager):
 
-        ContainerOVSDPDK.__init__(self, config.defaults, config.s_machine_config,
+        ContainerOVSDPDK.__init__(self, config.defaults, config.s_cset_configs, 
+                                  config.s_machine_config,
                                   config.s_container_configs,
                                   wmanager,
                                   config.defaults.s_setup_pane,

@@ -8,6 +8,7 @@ class ContainerOVSDPDK(Node):
     def __init__(
         self,
         defaults,
+        cset_configs,
         machine_config,
         container_configs,
         wmanager,
@@ -18,7 +19,7 @@ class ContainerOVSDPDK(Node):
         bridge_name="br-int",
     ):
         Node.__init__(
-            self, defaults, machine_config, wmanager, setup_pane_name, cleanup_pane_name
+            self, defaults, cset_configs, machine_config, wmanager, setup_pane_name, cleanup_pane_name
         )
 
         self.container_configs = container_configs

@@ -17,7 +17,7 @@ class Client:
                 machine_config.is_remote)
 
     def run_bare(self, w_sudo, ld_preload):
-        self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=True)
+        self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False)
 
     def run_virt(self, w_sudo, ld_preload):
         ssh_com = utils.get_ssh_command(self.machine_config, self.vm_config)

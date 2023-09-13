@@ -12,7 +12,8 @@ from exps.overhead_throughput_msize.configs.container_virtuoso import Config as 
 
 experiments = []
 
-msize = [64, 128, 256, 512, 1024]
+# msize = [64, 128, 256, 512, 1024]
+msize = [64]
 n_runs = 1
 
 for n_r in range(n_runs):

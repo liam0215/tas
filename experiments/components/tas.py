@@ -26,7 +26,7 @@ class TAS:
                 save_log=True,
                 clean=False,
                 gdb=False,
-                cset=self.tas_config.cset)
+                cset=None)
 
     def run_virt(self):
         ssh_com = utils.get_ssh_command(self.machine_config, self.vm_config)

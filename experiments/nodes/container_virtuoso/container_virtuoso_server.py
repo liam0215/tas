@@ -8,7 +8,9 @@ class ContainerVirtuosoServer(ContainerVirtuoso):
 
     def __init__(self, config, wmanager):
 
-        ContainerVirtuoso.__init__(self, config.defaults, config.s_machine_config,
+        ContainerVirtuoso.__init__(self, config.defaults,
+                                   config.s_cset_configs,
+                                   config.s_machine_config,
                                    config.s_container_configs,
                                    config.s_tas_configs[0],
                                    wmanager,
