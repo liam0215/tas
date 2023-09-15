@@ -36,6 +36,9 @@ class ContainerTas(Node):
         super().cleanup()
         if self.tas:
             self.tas.cleanup(self.cleanup_pane)
+        else:
+            remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
+            self.cleanup_pane.send_keys(remove_tas_socket_com)
 
         for container in self.containers:
             container.shutdown()

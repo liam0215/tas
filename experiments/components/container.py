@@ -57,3 +57,4 @@ class Container:
         self.pane.send_keys(kill_container_cmd)
         prune_container_cmd = "sudo docker container prune -f"
         self.pane.send_keys(prune_container_cmd)
+        time.sleep(2)

@@ -55,7 +55,7 @@ class ContainerVirtuoso(Node):
                     tas_config=self.tas_config,
                     wmanager=self.wmanager)
         self.tas.run_bare()
-        time.sleep(7)
+        time.sleep(10)
 
     def start_containers(self):
         threads = []

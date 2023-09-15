@@ -8,7 +8,7 @@ class OvsTasServer(OvsTas):
   def __init__(self, config, wmanager):
 
     if hasattr(config, 's_tunnel'):
-      tunnel = config.c_tunnel
+      tunnel = config.s_tunnel
     else:
       tunnel = False
 
