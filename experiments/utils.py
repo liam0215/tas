@@ -50,7 +50,7 @@ def compile_and_run(pane, comp_dir, comp_cmd, clean_cmd,
         if cset is not None:
             cmd = 'sudo cset proc --set={} --exec {} -- {}'.format(cset, exec_file, args)
         elif cores is not None:
-            cmd = 'taskset -c {} sudo {} {}'.format(cores, exec_file, args)
+            cmd = 'taskset -c {} sudo {} {}'.format(','.join(map(str,cores)), exec_file, args)
         else:
             cmd = 'sudo ' + exec_file + ' ' + args
 
