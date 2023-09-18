@@ -47,8 +47,8 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
-                                            n_cores=13,
-                                            memory=5,
+                                            n_cores=16,
+                                            memory=10,
                                             tunnel=self.tunnel,
                                             cset="container0_server")
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
@@ -89,8 +89,8 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
-                                            n_cores=13,
-                                            memory=5,
+                                            n_cores=16,
+                                            memory=10,
                                             tunnel=self.tunnel,
                                             cset="container0_client")
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,

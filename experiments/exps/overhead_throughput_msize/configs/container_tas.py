@@ -32,6 +32,7 @@ class Config:
         self.s_machine_config = MachineConfig(ip=self.defaults.server_ip,
                                               interface=self.defaults.server_interface,
                                               stack=self.sstack,
+                                              ovs_pmd_mask="0x555",
                                               is_remote=True,
                                               is_server=True)
 
@@ -42,7 +43,7 @@ class Config:
                                             tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=5,
+                                            memory=10,
                                             n_queues=10,
                                             cset="container0_server")
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
@@ -72,6 +73,7 @@ class Config:
         self.c_machine_config = MachineConfig(ip=self.defaults.client_ip,
                                               interface=self.defaults.client_interface,
                                               stack=self.cstack,
+                                              ovs_pmd_mask="0x555",
                                               is_remote=False,
                                               is_server=False)
 
@@ -82,7 +84,7 @@ class Config:
                                             tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=5,
+                                            memory=10,
                                             n_queues=10,
                                             cset="container0_client")
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,

@@ -42,7 +42,7 @@ class Config:
                 idx=0,
                 n_cores=22,
                 cset="vm0_server",
-                memory=5,
+                memory=10,
                 n_queues=10)
 
         self.s_vm_configs.append(vm0_config)
@@ -76,7 +76,7 @@ class Config:
                 idx=0,
                 n_cores=22,
                 cset="vm0_client",
-                memory=5,
+                memory=10,
                 n_queues=10)
 
         self.c_vm_configs.append(vm0_config)

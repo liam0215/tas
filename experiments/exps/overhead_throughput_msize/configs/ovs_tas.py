@@ -43,7 +43,7 @@ class Config:
                 idx=0,
                 n_cores=22,
                 cset="vm0_server",
-                memory=5,
+                memory=10,
                 n_queues=10)
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
                 machine_config=self.s_machine_config,
@@ -84,7 +84,7 @@ class Config:
                 idx=0,
                 n_cores=22,
                 cset="vm0_client",
-                memory=5,
+                memory=10,
                 n_queues=10)
         tas0_config = TasConfig(pane=self.defaults.c_tas_pane,
                 machine_config=self.c_machine_config,

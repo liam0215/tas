@@ -44,7 +44,7 @@ class Config:
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=5,
+                                            memory=10,
                                             n_queues=10,
                                             cset="container0_server")
 
@@ -78,7 +78,7 @@ class Config:
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=5,
+                                            memory=10,
                                             n_queues=10,
                                             cset="container0_client")
 
