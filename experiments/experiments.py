@@ -51,7 +51,7 @@ class Experiment:
             node = OvsLinuxServer(self.config, self.wmanager)
         elif stack == "ovs-tas":
             node = OvsTasServer(self.config, self.wmanager)
-        elif stack == "container-ovs-dpdk":
+        elif stack == "container-ovsdpdk":
             node = ContainerOVSDPDKServer(self.config, self.wmanager)
         elif stack == "container-tas":
             node = ContainerTasServer(self.config, self.wmanager)
@@ -77,7 +77,7 @@ class Experiment:
             node = OvsLinuxClient(self.config, self.wmanager)
         elif stack == "ovs-tas":
             node = OvsTasClient(self.config, self.wmanager)
-        elif stack == "container-ovs-dpdk":
+        elif stack == "container-ovsdpdk":
             node = ContainerOVSDPDKClient(self.config, self.wmanager)
         elif stack == "container-tas":
             node = ContainerTasClient(self.config, self.wmanager)

@@ -34,7 +34,7 @@ class Config:
                 n_cores=22,
                 memory=10,
                 n_queues=10,
-                dpdk_extra="86:00.0")
+                pci="86:00.0")
 
         self.s_vm_configs.append(vm0_config)
 

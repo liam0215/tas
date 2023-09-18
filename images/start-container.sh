@@ -11,7 +11,7 @@ tas_dir=$6
 image_name="virtuoso"
 otas_interpose_path_virt="/home/tas/libtas_interpose.so"
 
-if [[ "$stack" == 'container-ovs-dpdk' ]]; then
+if [[ "$stack" == 'container-ovsdpdk' ]]; then
     sudo docker run --net=none --name $container_name \
     --memory=${memory}g \
     --cpuset-cpus 22,24,26,28,30,32,34,36,38,40,42 \
@@ -30,8 +30,8 @@ elif [[ "$stack" == 'container-virtuoso' ]];
 then
     sudo docker run --net=none --name $container_name \
     -v ${tas_dir}/flexnic_os_vm_${container_id}:/home/tas/projects/tas/flexnic_os_vm_${container_id} \
-    -v /dev/hugepages:/dev/hugepages \
-    -v /dev/shm:/dev/shm \
+    -v /dev/hugepages/tas_memory_vm${container_id}:/dev/hugepages/tas_memory_vm${container_id} \
+    -v /dev/shm/tas_info:/dev/shm/tas_info \
     --memory=${memory}g \
     --cpuset-cpus 22,24,26,28,30,32,34,36,38,40,42 \
     --cpus=${n_cores} \

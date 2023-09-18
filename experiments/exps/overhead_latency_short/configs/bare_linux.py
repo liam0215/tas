@@ -2,6 +2,7 @@ from configs.gen_config import Defaults
 from configs.gen_config import MachineConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
+from configs.gen_config import CSetConfig
 
 class Config:
     def __init__(self, exp_name, flow_len):
@@ -9,6 +10,16 @@ class Config:
 
         self.exp_name = exp_name
         self.defaults = Defaults()
+        
+        # Configure Cset
+        self.s_cset_configs = []
+        self.c_cset_configs = []
+        
+        server0_cset = CSetConfig([1,3,5,7,9,11,13,15,17,19,21,23,25], "0-1", "server")
+        self.s_cset_configs.append(server0_cset)
+
+        client0_cset = CSetConfig([1,3,5,7,9,11,13,15,17,19,21,23,25], "0-1", "client")
+        self.c_cset_configs.append(client0_cset)
         
         # Server Machine
         self.sstack = 'bare-linux'

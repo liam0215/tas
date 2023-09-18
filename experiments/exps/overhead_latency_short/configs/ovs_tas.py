@@ -4,6 +4,7 @@ from configs.gen_config import TasConfig
 from configs.gen_config import VMConfig
 from configs.gen_config import ClientConfig
 from configs.gen_config import ServerConfig
+from configs.gen_config import CSetConfig
 
 class Config:
     def __init__(self, exp_name, flow_len):
@@ -12,6 +13,16 @@ class Config:
         self.exp_name = exp_name
         self.defaults = Defaults()
         
+        # Configure csets
+        self.s_cset_configs = []
+        self.c_cset_configs = []
+
+        vm0_cset = CSetConfig([1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43], "0-1", "vm0_server")
+        self.s_cset_configs.append(vm0_cset)
+
+        vm0_cset = CSetConfig([1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43], "0-1", "vm0_client")
+        self.c_cset_configs.append(vm0_cset)
+
         # Server Machine
         self.sstack = 'ovs-tas'
         self.snum = 1
@@ -33,6 +44,7 @@ class Config:
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
                 n_cores=22,
+                cset="vm0_server",
                 memory=10,
                 n_queues=10)
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
@@ -73,6 +85,7 @@ class Config:
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
                 n_cores=22,
+                cset="vm0_client",
                 memory=10,
                 n_queues=10)
         tas0_config = TasConfig(pane=self.defaults.c_tas_pane,

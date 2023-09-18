@@ -40,12 +40,20 @@ class VM:
         self.pane.send_keys(cmd)
 
     def enable_hugepages(self):
-        cmd = "sudo mount -t hugetlbfs nodev /dev/hugepages"
-        self.pane.send_keys(cmd)
+        self.pane.send_keys(suppress_history=False, cmd='whoami')
         time.sleep(1)
-        cmd = "echo 1024 | sudo tee /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages"
-        self.pane.send_keys(cmd)
-        time.sleep(5)
+        captured_pane = self.pane.capture_pane()
+        user = captured_pane[len(captured_pane) - 2]
+        
+        # This means we are in the vm, so we don't 
+        # accidentally shutdown machine
+        if user == 'tas':
+            cmd = "sudo mount -t hugetlbfs nodev /dev/hugepages"
+            self.pane.send_keys(cmd)
+            time.sleep(1)
+            cmd = "echo 1024 | sudo tee /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages"
+            self.pane.send_keys(cmd)
+            time.sleep(5)
 
     def set_mtu(self, interface, mss):
         cmd = "sudo ip link set dev {} mtu {} up".format(interface, mss)

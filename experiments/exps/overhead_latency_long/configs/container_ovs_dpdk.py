@@ -34,8 +34,7 @@ class Config:
                                               interface=self.defaults.server_interface,
                                               stack=self.sstack,
                                               is_remote=True,
-                                              is_server=True,
-                                              ovs_pmd_mask="0x555")
+                                              is_server=True)
 
         container0_config = ContainerConfig(pane=self.defaults.s_container_pane,
                                             machine_config=self.s_machine_config,
@@ -44,7 +43,7 @@ class Config:
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=5,
+                                            memory=10,
                                             n_queues=10,
                                             cset="container0_server")
 
@@ -68,8 +67,7 @@ class Config:
                                               interface=self.defaults.client_interface,
                                               stack=self.cstack,
                                               is_remote=False,
-                                              is_server=False,
-                                              ovs_pmd_mask="0x555")
+                                              is_server=False)
 
         container0_config = ContainerConfig(pane=self.defaults.c_container_pane,
                                             machine_config=self.c_machine_config,
@@ -78,7 +76,7 @@ class Config:
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=5,
+                                            memory=10,
                                             n_queues=10,
                                             cset="container0_client")
 

@@ -42,7 +42,7 @@ class Config:
                                             tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=10,
+                                            memory=5,
                                             n_queues=10,
                                             cset="container0_server")
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
@@ -82,7 +82,7 @@ class Config:
                                             tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
                                             n_cores=22,
-                                            memory=10,
+                                            memory=5,
                                             n_queues=10,
                                             cset="container0_client")
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,
