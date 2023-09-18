@@ -37,7 +37,7 @@ echo $alt_mac
 # Note: vectors=<2 + 2 * queues_nr>
 
 if [[ "$stack" == 'virt-tas' ]]; then
-  taskset -c 23,25,27,29,31,33,35,37,39,41,43 \
+  taskset -c 13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
   sudo qemu-system-x86_64 \
     -nographic -monitor none -serial stdio \
     -machine accel=kvm,type=q35 \

@@ -26,7 +26,8 @@ class TAS:
                 save_log=True,
                 clean=False,
                 gdb=False,
-                cset=None)
+                cset=None,
+                cores=self.tas_config.cores)
 
     def run_virt(self):
         ssh_com = utils.get_ssh_command(self.machine_config, self.vm_config)
@@ -44,7 +45,8 @@ class TAS:
                 out=self.tas_config.out,
                 args=tas_args,
                 save_log=True,
-                clean=False)
+                clean=False,
+                cores=self.tas_config.cores)
         time.sleep(3)
 
     def save_log_bare(self, exp_path):

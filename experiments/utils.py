@@ -28,7 +28,7 @@ def get_scp_command(machine_config, vm_config, src_path, save_path):
 def compile_and_run(pane, comp_dir, comp_cmd, clean_cmd,
         exec_file, args, out,
         bg=False, gdb=False,
-        valgrind=False, clean=False, cset=None,
+        valgrind=False, clean=False, cset=None, cores=None,
         break_file=None, line_break=None, save_log=False):
 
     pane.send_keys('cd ' + comp_dir)
@@ -49,6 +49,8 @@ def compile_and_run(pane, comp_dir, comp_cmd, clean_cmd,
     else:
         if cset is not None:
             cmd = 'sudo cset proc --set={} --exec {} -- {}'.format(cset, exec_file, args)
+        elif cores is not None:
+            cmd = 'taskset -c {} sudo {} {}'.format(cores, exec_file, args)
         else:
             cmd = 'sudo ' + exec_file + ' ' + args
 
