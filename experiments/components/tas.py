@@ -66,3 +66,12 @@ class TAS:
     def cleanup(self, pane):
         remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
         pane.send_keys(remove_tas_socket_com)
+        time.sleep(1)
+        cmd = "sudo umount /dev/hugepages"
+        time.sleep(1)
+        cmd = "sudo mount -t hugetlbfs nodev /dev/hugepages"
+        self.pane.send_keys(cmd)
+        time.sleep(1)
+        cmd = "echo 16384 | sudo tee /sys/devices/system/node/node*/hugepages/hugepages-2048kB/nr_hugepages"
+        self.pane.send_keys(cmd)
+        time.sleep(5)
