@@ -63,7 +63,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                                       idx=0, vmid=0,
-                                      port=1234, ncores=12, max_flows=4096, max_bytes=msize*flow_len,
+                                      port=1234, ncores=12, max_flows=4096, max_bytes=msize,
                                       bench_dir=self.defaults.default_obenchmark_dir_virt,
                                       tas_dir=self.defaults.default_otas_dir_virt)
         self.server_configs.append(server0_config)
@@ -107,9 +107,11 @@ class Config:
                                       pane=self.defaults.c_client_pane,
                                       idx=0, vmid=0, stack=self.cstack,
                                       ip=self.defaults.server_ip, port=1234, ncores=12,
-                                      msize=msize, mpending=flow_len, nconns=100,
-                                      open_delay=0, max_msgs_conn=0, max_pend_conns=16,
+                                      msize=msize, mpending=1, nconns=100,
+                                      open_delay=0, max_msgs_conn=flow_len, max_pend_conns=16,
                                       bench_dir=self.defaults.default_obenchmark_dir_virt,
                                       tas_dir=self.defaults.default_otas_dir_virt)
-
+        client0_config.hist_file = None
+        client0_config.hist_msgs_file = None
+        client0_config.hist_open_file = None
         self.client_configs.append(client0_config)

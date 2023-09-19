@@ -92,5 +92,7 @@ class Config:
                 cset="client0",
                 bench_dir=self.defaults.default_vbenchmark_dir_bare,
                 tas_dir=self.defaults.default_vtas_dir_bare)
-
+        client0_config.hist_file = None
+        client0_config.hist_msgs_file = None
+        client0_config.hist_open_file = None
         self.client_configs.append(client0_config)

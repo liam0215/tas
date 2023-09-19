@@ -139,5 +139,7 @@ class Config:
                 open_delay=0, max_msgs_conn=flow_len, max_pend_conns=1,
                 bench_dir=self.defaults.default_vbenchmark_dir_virt,
                 tas_dir=self.defaults.default_vtas_dir_virt)
-
+        client0_config.hist_file = None
+        client0_config.hist_msgs_file = None
+        client0_config.hist_open_file = None
         self.client_configs.append(client0_config)
