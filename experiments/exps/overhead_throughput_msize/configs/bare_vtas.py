@@ -46,7 +46,8 @@ class Config:
                 ip=self.s_machine_config.ip,
                 cset="tas_server",
                 n_cores=5,
-                pci="86:00.0")
+                pci="86:00.0",
+                cores=tas_cset.cores)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
         self.s_tas_configs.append(tas_config)
 
@@ -55,7 +56,8 @@ class Config:
                 port=1234, ncores=12, max_flows=4096, max_bytes=4096,
                 cset="server",
                 bench_dir=self.defaults.default_vbenchmark_dir_bare,
-                tas_dir=self.defaults.default_vtas_dir_bare)
+                tas_dir=self.defaults.default_vtas_dir_bare,
+                cores=vm0_cset.cores)
                 
         self.server_configs.append(server0_config)
 
@@ -79,7 +81,8 @@ class Config:
                 project_dir=self.defaults.default_vtas_dir_bare,
                 ip=self.c_machine_config.ip,
                 cset="tas_client",
-                n_cores=5)
+                n_cores=5,
+                cores=tas_cset.cores)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
         self.c_tas_configs.append(tas_config)
 
@@ -91,6 +94,7 @@ class Config:
                 open_delay=10, max_msgs_conn=0, max_pend_conns=1,
                 cset="client",
                 bench_dir=self.defaults.default_vbenchmark_dir_bare,
-                tas_dir=self.defaults.default_vtas_dir_bare)
+                tas_dir=self.defaults.default_vtas_dir_bare,
+                cores=vm0_cset.cores)
 
         self.client_configs.append(client0_config)

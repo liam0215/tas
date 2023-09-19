@@ -87,11 +87,11 @@ def parse_data(parsed_md):
         tp = get_avg_tp(c0_fname)
         if tp > 0:
           tp_x = np.append(tp_x, tp)
-
-      data_point[stack] = {
-        "tp": tp_x.mean(),
-        "std": tp_x.std(),
-      }
+      if tp_x.size > 0:
+        data_point[stack] = {
+          "tp": tp_x.mean(),
+          "std": tp_x.std(),
+        }
   
     data.append(data_point)
   
@@ -101,16 +101,20 @@ def parse_data(parsed_md):
 def save_dat_file(data, fname):
   f = open(fname, "w+")
   header = "msize " + \
-      "bare-tas-avg virt-tas-avg ovs-tas-avg bare-linux-avg ovs-linux-avg " + \
-      "bare-tas-std virt-tas-std ovs-tas-std bare-linux-std ovs-linux-std\n"
+      "virt-tas-avg container-virtuoso-avg ovs-tas-avg container-tas-avg ovs-linux-avg container-ovsdpdk-avg bare-tas-avg" + \
+      "virt-tas-std container-virtuoso-std ovs-tas-std container-tas-std ovs-linux-std container-ovsdpdk-std bare-tas-std\n"
   f.write(header)
   for dp in data:
-    f.write("{} {} {} {} {} {} {} {} {} {} {}\n".format(
+    f.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
       dp["msize"],
-      dp["bare-tas"]["tp"], dp["virt-tas"]["tp"],
-      dp["ovs-tas"]["tp"], dp["bare-linux"]["tp"], dp["ovs-linux"]["tp"],
-      dp["bare-tas"]["std"], dp["virt-tas"]["std"],
-      dp["ovs-tas"]["std"], dp["bare-linux"]["std"], dp["ovs-linux"]["std"]))
+      dp["virt-tas"]["tp"], dp["container-virtuoso"]["tp"],
+      dp["ovs-tas"]["tp"], dp["container-tas"]["tp"], 
+      dp["ovs-linux"]["tp"], dp["container-ovsdpdk"]["tp"],
+      dp["bare-tas"]["tp"],
+      dp["virt-tas"]["std"], dp["container-virtuoso"]["std"],
+      dp["ovs-tas"]["std"], dp["container-tas"]["std"], 
+      dp["ovs-linux"]["std"], dp["container-ovsdpdk"]["std"],
+      dp["bare-tas"]["std"]))
         
 def main():
   parsed_md = parse_metadata()

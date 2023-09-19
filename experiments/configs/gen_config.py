@@ -259,7 +259,8 @@ class ClientConfig:
             nconns, open_delay, max_msgs_conn, max_pend_conns,
             bench_dir, tas_dir, stack, exp_name, 
             bursty=False, rate_normal=10000, rate_burst=10000, 
-            burst_length=0, burst_interval=0, groupid=0, cset="client"):
+            burst_length=0, burst_interval=0, groupid=0, cset="client",
+            cores=[19,21,23,25,27,29,31,33,35,37,39,41,43]):
         self.name = "client"
         self.exp_name = exp_name
         self.exp_name = ""
@@ -302,11 +303,13 @@ class ClientConfig:
         self.pane = pane
         self.id = idx
         self.stack = stack
+        self.cores = cores
 
 class ServerConfig:
     def __init__(self, pane, idx, vmid,
             port, ncores, max_flows, max_bytes,
-            bench_dir, tas_dir, groupid=0, cset="server"):
+            bench_dir, tas_dir, groupid=0, cset="server",
+            cores=[19,21,23,25,27,29,31,33,35,37,39,41,43]):
         self.name = "server"
         self.tas_dir = tas_dir
         
@@ -328,3 +331,4 @@ class ServerConfig:
         self.pane = pane
         self.id = idx
         self.vmid = vmid
+        self.cores = cores

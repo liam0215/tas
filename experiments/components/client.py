@@ -17,7 +17,7 @@ class Client:
                 machine_config.is_remote)
 
     def run_bare(self, w_sudo, ld_preload):
-        self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False)
+        self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False, cores=self.client_config.cores)
 
     def run_virt(self, w_sudo, ld_preload):
         ssh_com = utils.get_ssh_command(self.machine_config, self.vm_config)
@@ -27,7 +27,7 @@ class Client:
         time.sleep(2)
         self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False)
 
-    def run_benchmark_rpc(self, w_sudo, ld_preload, clean, cset):
+    def run_benchmark_rpc(self, w_sudo, ld_preload, clean, cset, cores=None):
         self.pane.send_keys('cd ' + self.client_config.comp_dir)
 
         if clean:
@@ -51,6 +51,8 @@ class Client:
             cmd += "cset proc --set={} --exec ".format(self.client_config.cset)
             cmd += self.client_config.exec_file + ' -- '
             cmd += self.client_config.args + ' | tee ' + self.client_config.out
+        elif cores:
+            cmd = 'taskset -c {} {} {} {} | tee {}'.format(','.join(map(str,cores)), cmd, self.client_config.exec_file, self.client_config.args, self.client_config.out)
         else:
             cmd += self.client_config.exec_file + ' ' + \
                     self.client_config.args + \

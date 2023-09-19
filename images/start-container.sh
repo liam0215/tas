@@ -23,7 +23,7 @@ elif [[ "$stack" == 'container-tas' ]]; then
     -v /dev/hugepages:/dev/hugepages \
     -v /dev/shm:/dev/shm \
     --memory=${memory}g \
-    --cpuset-cpus 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
+    --cpuset-cpus 13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43 \
     --cpus=${n_cores} \
     -d $image_name sleep infinity;
 elif [[ "$stack" == 'container-virtuoso' ]]; 

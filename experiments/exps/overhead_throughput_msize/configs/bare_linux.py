@@ -39,7 +39,8 @@ class Config:
                 port=1234, ncores=12, max_flows=4096, max_bytes=4096,
                 cset="server",
                 bench_dir=self.defaults.default_obenchmark_dir_bare,
-                tas_dir=self.defaults.default_otas_dir_bare)
+                tas_dir=self.defaults.default_otas_dir_bare,
+                cores=server0_cset.cores)
         self.server_configs.append(server0_config)
 
         # Client Machine
@@ -65,5 +66,6 @@ class Config:
                 open_delay=10, max_msgs_conn=0, max_pend_conns=1,
                 cset="client",
                 bench_dir=self.defaults.default_obenchmark_dir_bare,
-                tas_dir=self.defaults.default_otas_dir_bare)
+                tas_dir=self.defaults.default_otas_dir_bare,
+                cores=client0_cset.cores)
         self.client_configs.append(client0_config)

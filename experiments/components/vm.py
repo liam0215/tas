@@ -108,7 +108,7 @@ class VM:
 
     def shutdown(self):
         self.pane.send_keys(suppress_history=False, cmd='whoami')
-        
+        time.sleep(1)
         captured_pane = self.pane.capture_pane()
         user = captured_pane[len(captured_pane) - 2]
         

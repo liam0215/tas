@@ -101,6 +101,7 @@ class Config:
                 machine_config=self.c_machine_config,
                 project_dir=self.defaults.default_vtas_dir_bare,
                 ip=self.c_machine_config.ip,
+                pci="d8:00.0",
                 cset="tas_client",
                 n_cores=5)
         self.c_tas_configs.append(tas_config)

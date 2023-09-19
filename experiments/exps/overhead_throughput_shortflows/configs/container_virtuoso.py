@@ -8,7 +8,8 @@ from configs.gen_config import CSetConfig
 
 
 class Config:
-    def __init__(self, exp_name, msize):
+    def __init__(self, exp_name, flow_len):
+        msize = 64
         self.exp_name = exp_name
         self.defaults = Defaults()
 
@@ -52,8 +53,8 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
-                                            n_cores=16,
-                                            memory=10,
+                                            n_cores=13,
+                                            memory=5,
                                             tunnel=self.tunnel,
                                             cset="container0_server")
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
@@ -70,7 +71,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                                       idx=0, vmid=0,
-                                      port=1234, ncores=12, max_flows=4096, max_bytes=4096,
+                                      port=1234, ncores=12, max_flows=4096, max_bytes=msize*flow_len,
                                       bench_dir=self.defaults.default_vbenchmark_dir_virt,
                                       tas_dir=self.defaults.default_vtas_dir_virt)
         self.server_configs.append(server0_config)
@@ -95,8 +96,8 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_vtas_dir_bare,
                                             idx=0,
-                                            n_cores=16,
-                                            memory=10,
+                                            n_cores=13,
+                                            memory=5,
                                             tunnel=self.tunnel,
                                             cset="container0_client")
         tas_config = TasConfig(pane=self.defaults.c_tas_pane,
@@ -116,8 +117,8 @@ class Config:
                                       pane=self.defaults.c_client_pane,
                                       idx=0, vmid=0, stack=self.cstack,
                                       ip=self.defaults.server_ip, port=1234, ncores=12,
-                                      msize=msize, mpending=64, nconns=100,
-                                      open_delay=10, max_msgs_conn=0, max_pend_conns=1,
+                                      msize=msize, mpending=flow_len, nconns=100,
+                                      open_delay=10, max_msgs_conn=0, max_pend_conns=16,
                                       bench_dir=self.defaults.default_vbenchmark_dir_virt,
                                       tas_dir=self.defaults.default_vtas_dir_virt)
 

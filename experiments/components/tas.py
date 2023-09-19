@@ -45,8 +45,7 @@ class TAS:
                 out=self.tas_config.out,
                 args=tas_args,
                 save_log=True,
-                clean=False,
-                cores=self.tas_config.cores)
+                clean=False)
         time.sleep(3)
 
     def save_log_bare(self, exp_path):
@@ -67,7 +66,7 @@ class TAS:
         remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
         pane.send_keys(remove_tas_socket_com)
         time.sleep(1)
-        remove_tas_socket_com = "find /dev/hugepages/ -name \"*tas*\" | xargs rm -r"
+        remove_tas_socket_com = "find /dev/hugepages/ -name \"*tas*\" | sudo xargs rm -r"
         pane.send_keys(remove_tas_socket_com)
         time.sleep(2)
 

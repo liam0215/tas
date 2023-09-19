@@ -15,7 +15,7 @@ class Server:
             machine_config.is_remote)
     
     def run_bare(self, w_sudo, ld_preload):
-        self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False)
+        self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False, cores=self.server_config.cores)
 
     def run_virt(self, w_sudo, ld_preload):
         ssh_com = utils.get_ssh_command(self.machine_config, self.vm_config)
@@ -24,7 +24,7 @@ class Server:
         self.pane.send_keys("tas")
         self.run_benchmark_rpc(w_sudo, ld_preload, clean=False, cset=False)
 
-    def run_benchmark_rpc(self, w_sudo, ld_preload, clean, cset):
+    def run_benchmark_rpc(self, w_sudo, ld_preload, clean, cset, cores=None):
         self.pane.send_keys('cd ' + self.server_config.comp_dir)
 
         if clean:
@@ -48,6 +48,8 @@ class Server:
             cmd += "cset proc --set={} --exec ".format(self.server_config.cset)
             cmd += self.server_config.exec_file + ' -- '
             cmd += self.server_config.args + ' | tee ' + self.server_config.out
+        elif cores is not None:
+            cmd = 'taskset -c {} {} {} {} | tee {}'.format(','.join(map(str,cores)), cmd, self.server_config.exec_file, self.server_config.args, self.server_config.out)
         else:
             cmd += self.server_config.exec_file + ' ' + \
                     self.server_config.args 

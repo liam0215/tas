@@ -5,6 +5,9 @@ from exps.overhead_throughput_shortflows.configs.virt_tas import Config as TasVi
 from exps.overhead_throughput_shortflows.configs.ovs_tas import Config as OVSTasConf
 from exps.overhead_throughput_shortflows.configs.bare_linux import Config as BareLinuxConf
 from exps.overhead_throughput_shortflows.configs.ovs_linux import Config as OVSLinuxConf
+from exps.overhead_throughput_msize.configs.container_ovs_dpdk import Config as ContainerOvsDpdkConf
+from exps.overhead_throughput_msize.configs.container_tas import Config as ContainerTasConf
+from exps.overhead_throughput_msize.configs.container_virtuoso import Config as ContainerVirtuosoConf
 
 experiments = []
 
@@ -19,11 +22,17 @@ for n_r in range(n_runs):
     ovs_tas_exp = exp.Experiment(OVSTasConf(exp_name + "ovs-tas", flow_len), name=exp_name)
     bare_linux_exp = exp.Experiment(BareLinuxConf(exp_name + "bare-linux", flow_len), name=exp_name)
     ovs_linux_exp = exp.Experiment(OVSLinuxConf(exp_name + "ovs-linux", flow_len), name=exp_name)
+    container_ovs_dpdk_exp = exp.Experiment(ContainerOvsDpdkConf(exp_name + "container-ovsdpdk", flow_len), name=exp_name)
+    container_tas_exp = exp.Experiment(ContainerTasConf(exp_name + "container-tas", flow_len), name=exp_name)
+    container_virtuoso_exp = exp.Experiment(ContainerVirtuosoConf(exp_name + "container-virtuoso", flow_len), name=exp_name)
 
     experiments.append(tas_bare_exp)
     experiments.append(tas_virt_exp)
     experiments.append(ovs_tas_exp)
     experiments.append(bare_linux_exp)
     experiments.append(ovs_linux_exp)
+    experiments.append(container_ovs_dpdk_exp)
+    experiments.append(container_tas_exp)
+    experiments.append(container_virtuoso_exp)
 
 
