@@ -51,12 +51,11 @@ class Config:
                 pci="86:00.0",
                 tunnel=True,
                 cores=tas_cset.cores)
-        tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
         self.s_tas_configs.append(tas_config)
 
         self.s_proxyh_config = HostProxyConfig(pane=self.defaults.s_proxyh_pane,
                 machine_config=self.s_machine_config,
-                block=1,
+                block=0,
                 comp_dir=self.defaults.default_vtas_dir_bare)
         
         vm0_config = VMConfig(pane=self.defaults.s_vm_pane,
@@ -72,7 +71,7 @@ class Config:
 
         proxyg0_config = GuestProxyConfig(pane=self.defaults.s_proxyg_pane,
                     machine_config=self.s_machine_config,
-                    block=1,
+                    block=0,
                     comp_dir=self.defaults.default_vtas_dir_virt)
         
         self.s_proxyg_configs.append(proxyg0_config)
@@ -107,12 +106,11 @@ class Config:
                 n_cores=5,
                 tunnel=True,
                 cores=tas_cset.cores)
-        tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
         self.c_tas_configs.append(tas_config)
 
         self.c_proxyh_config = HostProxyConfig(pane=self.defaults.c_proxyh_pane,
                 machine_config=self.c_machine_config,
-                block=1,
+                block=0,
                 comp_dir=self.defaults.default_vtas_dir_bare)
         
         vm0_config = VMConfig(pane=self.defaults.c_vm_pane,
@@ -128,7 +126,7 @@ class Config:
 
         proxyg0_config = GuestProxyConfig(pane=self.defaults.c_proxyg_pane,
                     machine_config=self.c_machine_config,
-                    block=1,
+                    block=0,
                     comp_dir=self.defaults.default_vtas_dir_virt)
         
         self.c_proxyg_configs.append(proxyg0_config)

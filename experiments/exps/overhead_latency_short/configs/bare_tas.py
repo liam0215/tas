@@ -8,7 +8,7 @@ from configs.gen_config import CSetConfig
 class Config:
     def __init__(self, exp_name, flow_len):
         msize = 64
-
+        
         self.exp_name = exp_name
         self.defaults = Defaults()
 
@@ -26,6 +26,20 @@ class Config:
         client0_cset = CSetConfig([5,7], "0-1", "client0")
         self.c_cset_configs.append(client0_cset)
         
+        # Configure csets
+        self.s_cset_configs = []
+        self.c_cset_configs = []
+        tas_cset = CSetConfig([1,3], "0-1", "tas_server")
+        self.s_cset_configs.append(tas_cset)
+        tas_cset = CSetConfig([1,3], 1, "tas_client")
+        self.c_cset_configs.append(tas_cset)
+
+        server0_cset = CSetConfig([5,7], "0-1", "server0")
+        self.s_cset_configs.append(server0_cset)
+        
+        client0_cset = CSetConfig([5,7], "0-1", "client0")
+        self.c_cset_configs.append(client0_cset)
+
         # Server Machine
         self.sstack = 'bare-tas'
         self.snum = 1
@@ -53,7 +67,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                 idx=0, vmid=0,
-                port=1234, ncores=1, max_flows=4096, max_bytes=flow_len * msize,
+                port=1234, ncores=1, max_flows=4096, max_bytes=msize,
                 cset="server0",
                 bench_dir=self.defaults.default_obenchmark_dir_bare,
                 tas_dir=self.defaults.default_otas_dir_bare)
@@ -87,8 +101,9 @@ class Config:
                 pane=self.defaults.c_client_pane,
                 idx=0, vmid=0, stack=self.cstack,
                 ip=self.defaults.server_ip, port=1234, ncores=1,
-                msize=msize, mpending=flow_len, nconns=1000,
-                open_delay=0, max_msgs_conn=0, max_pend_conns=1,
+                msize=msize, mpending=1, nconns=1,
+                open_delay=0, max_msgs_conn=flow_len, max_pend_conns=1,
+                conn_latency=True,
                 cset="client0",
                 bench_dir=self.defaults.default_obenchmark_dir_bare,
                 tas_dir=self.defaults.default_otas_dir_bare)

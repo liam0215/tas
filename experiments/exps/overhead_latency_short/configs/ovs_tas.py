@@ -16,11 +16,10 @@ class Config:
         # Configure csets
         self.s_cset_configs = []
         self.c_cset_configs = []
-
-        vm0_cset = CSetConfig([1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43], "0-1", "vm0_server")
+        vm0_cset = CSetConfig([1,3,5,7,9,11], "0-1", "vm0_server")
         self.s_cset_configs.append(vm0_cset)
 
-        vm0_cset = CSetConfig([1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43], "0-1", "vm0_client")
+        vm0_cset = CSetConfig([1,3,5,7,9,11], "0-1", "vm0_client")
         self.c_cset_configs.append(vm0_cset)
 
         # Server Machine
@@ -43,9 +42,9 @@ class Config:
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
-                n_cores=22,
+                n_cores=6,
                 cset="vm0_server",
-                memory=10,
+                memory=5,
                 n_queues=10)
         tas_config = TasConfig(pane=self.defaults.s_tas_pane,
                 machine_config=self.s_machine_config,
@@ -59,7 +58,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                 idx=0, vmid=0,
-                port=1234, ncores=1, max_flows=4096, max_bytes=msize * flow_len,
+                port=1234, ncores=1, max_flows=4096, max_bytes=msize,
                 bench_dir=self.defaults.default_obenchmark_dir_virt,
                 tas_dir=self.defaults.default_otas_dir_virt)
         self.server_configs.append(server0_config)
@@ -84,9 +83,9 @@ class Config:
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
-                n_cores=22,
+                n_cores=6,
                 cset="vm0_client",
-                memory=10,
+                memory=5,
                 n_queues=10)
         tas0_config = TasConfig(pane=self.defaults.c_tas_pane,
                 machine_config=self.c_machine_config,
@@ -102,8 +101,9 @@ class Config:
                 pane=self.defaults.c_client_pane,
                 idx=0, vmid=0, stack=self.cstack,
                 ip=self.s_vm_configs[0].vm_ip, port=1234, ncores=1,
-                msize=msize, mpending=flow_len, nconns=1000,
-                open_delay=0, max_msgs_conn=0, max_pend_conns=1,
+                msize=msize, mpending=1, nconns=1,
+                open_delay=0, max_msgs_conn=flow_len, max_pend_conns=1,
+                conn_latency=True,
                 bench_dir=self.defaults.default_obenchmark_dir_virt,
                 tas_dir=self.defaults.default_otas_dir_virt)
 

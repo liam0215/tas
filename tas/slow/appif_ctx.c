@@ -78,9 +78,11 @@ void appif_conn_opened(struct connection *c, int status)
 
     kout->data.conn_opened.seq_rx = c->remote_seq;
     kout->data.conn_opened.seq_tx = c->local_seq;
+    kout->data.conn_opened.out_remote_ip = c->out_remote_ip;
     kout->data.conn_opened.out_local_ip = config.ip;
     kout->data.conn_opened.in_local_ip = c->in_local_ip;
     kout->data.conn_opened.local_port = c->local_port;
+    kout->data.conn_opened.tunnel_id = c->tunnel_id;
     kout->data.conn_opened.flow_id = c->flow_id;
     kout->data.conn_opened.fn_core = c->fn_core;
   } else {
@@ -447,6 +449,7 @@ static int kin_conn_close(struct application *app, struct app_context *ctx,
     fprintf(stderr, "kin_conn_close: connection not found\n");
     goto error;
   }
+
 
   if (tcp_close(conn) != 0) {
     fprintf(stderr, "kin_conn_close: tcp_close failed\n");
