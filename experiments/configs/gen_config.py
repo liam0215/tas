@@ -289,12 +289,9 @@ class ClientConfig:
         self.hist_open_file = "histopen-" + self.out_file
         self.temp_file = "temp"
         self.out = self.out_dir + '/' + self.out_file
-        # self.hist_out = self.out_dir + "/" + self.hist_file
-        # self.hist_msgs_out = self.out_dir + "/" + self.hist_msgs_file
-        # self.hist_open_out = self.out_dir + "/" + self.hist_open_file
-        self.hist_file = None
-        self.hist_msgs_file = None
-        self.hist_open_file = None
+        self.hist_out = self.out_dir + "/" + self.hist_file
+        self.hist_msgs_out = self.out_dir + "/" + self.hist_msgs_file
+        self.hist_open_out = self.out_dir + "/" + self.hist_open_file
 
         if bursty:
             self.args = '{} {} {} foo {} {} {} {} {} {} {} {} {} {}'.format(ip, port, ncores, \

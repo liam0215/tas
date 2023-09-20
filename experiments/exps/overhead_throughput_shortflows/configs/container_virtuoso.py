@@ -18,18 +18,18 @@ class Config:
         self.c_cset_configs = []
 
         tas_cset = CSetConfig(
-            [i for i in range(1, 12, 2)], "0-1", "tas_server")
+            [i for i in range(1, 22, 2)], "0-1", "tas_server")
         self.s_cset_configs.append(tas_cset)
         tas_cset = CSetConfig(
-            [i for i in range(1, 12, 2)], "0-1", "tas_client")
+            [i for i in range(1, 22, 2)], "0-1", "tas_client")
         self.c_cset_configs.append(tas_cset)
 
         container0_cset = CSetConfig(
-            [i for i in range(13, 44, 2)], "0-1", "container0_server")
+            [i for i in range(23, 44, 2)], "0-1", "container0_server")
         self.s_cset_configs.append(container0_cset)
 
         container0_cset = CSetConfig(
-            [i for i in range(13, 44, 2)], "0-1", "container0_client")
+            [i for i in range(23, 44, 2)], "0-1", "container0_client")
         self.c_cset_configs.append(container0_cset)
 
         self.tunnel = True
@@ -104,7 +104,7 @@ class Config:
                                machine_config=self.c_machine_config,
                                project_dir=self.defaults.default_vtas_dir_bare,
                                ip=self.c_machine_config.ip,
-                               n_cores=5, pci="d8:00.0", tunnel=self.tunnel,
+                               n_cores=10, pci="d8:00.0", tunnel=self.tunnel,
                                cset="tas_client",
                                cores=tas_cset.cores)
         tas_config.args = tas_config.args + " --vm-shm-len=4294967296"
@@ -121,7 +121,10 @@ class Config:
                                       open_delay=10, max_msgs_conn=flow_len, max_pend_conns=16,
                                       bench_dir=self.defaults.default_vbenchmark_dir_virt,
                                       tas_dir=self.defaults.default_vtas_dir_virt)
+        client0_config.hist_out = None
         client0_config.hist_file = None
         client0_config.hist_msgs_file = None
         client0_config.hist_open_file = None
+        client0_config.hist_msgs_out = None
+        client0_config.hist_open_out = None
         self.client_configs.append(client0_config)

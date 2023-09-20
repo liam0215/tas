@@ -63,7 +63,7 @@ class Config:
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
-                n_cores=11,
+                n_cores=5,
                 cset="vm0_server",
                 memory=5)
 
@@ -78,7 +78,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                 idx=0, vmid=0,
-                port=1234, ncores=5, max_flows=4096, max_bytes=msize,
+                port=1234, ncores=2, max_flows=4096, max_bytes=msize,
                 bench_dir=self.defaults.default_vbenchmark_dir_virt,
                 tas_dir=self.defaults.default_vtas_dir_virt)
         self.server_configs.append(server0_config)
@@ -118,7 +118,7 @@ class Config:
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
-                n_cores=11,
+                n_cores=5,
                 cset="vm0_client",
                 memory=5)
 
@@ -134,12 +134,15 @@ class Config:
         client0_config = ClientConfig(exp_name=exp_name, 
                 pane=self.defaults.c_client_pane,
                 idx=0, vmid=0, stack=self.cstack,
-                ip=self.s_vm_configs[0].vm_ip, port=1234, ncores=5,
+                ip=self.s_vm_configs[0].vm_ip, port=1234, ncores=2,
                 msize=msize, mpending=1, nconns=100,
                 open_delay=0, max_msgs_conn=flow_len, max_pend_conns=1,
                 bench_dir=self.defaults.default_vbenchmark_dir_virt,
                 tas_dir=self.defaults.default_vtas_dir_virt)
+        client0_config.hist_out = None
         client0_config.hist_file = None
         client0_config.hist_msgs_file = None
         client0_config.hist_open_file = None
+        client0_config.hist_msgs_out = None
+        client0_config.hist_open_out = None
         self.client_configs.append(client0_config)
