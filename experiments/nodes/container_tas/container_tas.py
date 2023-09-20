@@ -39,6 +39,10 @@ class ContainerTas(Node):
         else:
             remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
             self.cleanup_pane.send_keys(remove_tas_socket_com)
+            time.sleep(1)
+            remove_tas_socket_com = "find /dev/hugepages/ -name \"*tas*\" | sudo xargs rm -r"
+            self.cleanup_pane.send_keys(remove_tas_socket_com)
+            time.sleep(2)
 
         remove_containers_com = "sudo docker container kill $(sudo docker container ls -q)"
         self.cleanup_pane.send_keys(remove_containers_com)
