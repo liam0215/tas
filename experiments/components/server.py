@@ -49,7 +49,8 @@ class Server:
             cmd += self.server_config.exec_file + ' -- '
             cmd += self.server_config.args + ' | tee ' + self.server_config.out
         elif cores is not None:
-            cmd = 'taskset -c {} {} {} {} | tee {}'.format(','.join(map(str,cores)), cmd, self.server_config.exec_file, self.server_config.args, self.server_config.out)
+            # cmd = 'taskset -c {} {} {} {} | tee {}'.format(','.join(map(str,cores)), cmd, self.server_config.exec_file, self.server_config.args, self.server_config.out)
+            cmd = '{} {} {} | tee {}'.format(cmd, self.server_config.exec_file, self.server_config.args, self.server_config.out)
         else:
             cmd += self.server_config.exec_file + ' ' + \
                     self.server_config.args 
