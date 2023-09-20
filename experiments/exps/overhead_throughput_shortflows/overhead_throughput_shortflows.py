@@ -12,7 +12,7 @@ from exps.overhead_throughput_shortflows.configs.container_virtuoso import Confi
 experiments = []
 
 # flow_lens = [1,64,128,256,512,1024,2048]
-flow_lens = [1024,2048]
+flow_lens = [1,64,128,256,512]
 n_runs = 1
 
 # Run these commands if running out of ephemeral ports: 
@@ -41,7 +41,7 @@ for n_r in range(n_runs):
     experiments.append(tas_virt_exp)
     # experiments.append(ovs_tas_exp)
     # experiments.append(bare_linux_exp)
-    experiments.append(ovs_linux_exp)
+    # experiments.append(ovs_linux_exp)
     # experiments.append(container_ovs_dpdk_exp)
 
 

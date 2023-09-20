@@ -79,6 +79,8 @@ class ContainerOVSDPDK(Node):
 
         remove_containers_com = "sudo docker container kill $(sudo docker container ls -q)"
         self.cleanup_pane.send_keys(remove_containers_com)
+        prune_containers_com = "sudo docker container prune -f"
+        self.cleanup_pane.send_keys(prune_containers_com)
 
     def start_containers(self):
         threads = []
