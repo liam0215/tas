@@ -52,8 +52,7 @@ class Client:
             cmd += self.client_config.exec_file + ' -- '
             cmd += self.client_config.args + ' | tee ' + self.client_config.out
         elif cores:
-            # cmd = 'taskset -c {} {} {} {} | tee {}'.format(','.join(map(str,cores)), cmd, self.client_config.exec_file, self.client_config.args, self.client_config.out)
-            cmd = '{} {} {} | tee {}'.format(cmd, self.client_config.exec_file, self.client_config.args, self.client_config.out)
+            cmd = 'taskset -c {} {} {} {} | tee {}'.format(','.join(map(str,cores)), cmd, self.client_config.exec_file, self.client_config.args, self.client_config.out)
         else:
             cmd += self.client_config.exec_file + ' ' + \
                     self.client_config.args + \
