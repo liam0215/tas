@@ -111,11 +111,10 @@ class Config:
         self.c_container_configs.append(container0_config)
         self.c_tas_configs.append(tas_config)
 
-        # TODO: Fix IP
         client0_config = ClientConfig(exp_name=exp_name,
                                       pane=self.defaults.c_client_pane,
                                       idx=0, vmid=0, stack=self.cstack,
-                                      ip=self.defaults.server_ip, port=1234, ncores=12,
+                                      ip=self.s_container_configs[0].veth_container_ip, port=1234, ncores=12,
                                       msize=msize, mpending=64, nconns=100,
                                       open_delay=10, max_msgs_conn=0, max_pend_conns=1,
                                       bench_dir=self.defaults.default_vbenchmark_dir_virt,

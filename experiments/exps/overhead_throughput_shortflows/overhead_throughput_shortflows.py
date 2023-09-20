@@ -36,12 +36,12 @@ for n_r in range(n_runs):
     container_virtuoso_exp = exp.Experiment(ContainerVirtuosoConf(exp_name + "container-virtuoso", flow_len), name=exp_name)
 
     # experiments.append(tas_bare_exp)
+    experiments.append(container_virtuoso_exp)
     experiments.append(tas_virt_exp)
     # experiments.append(ovs_tas_exp)
     # experiments.append(bare_linux_exp)
     experiments.append(ovs_linux_exp)
     # experiments.append(container_ovs_dpdk_exp)
     experiments.append(container_tas_exp)
-    experiments.append(container_virtuoso_exp)
 
 
