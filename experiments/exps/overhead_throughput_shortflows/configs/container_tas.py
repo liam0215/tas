@@ -49,7 +49,7 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
-                                            n_cores=5,
+                                            n_cores=6,
                                             memory=5,
                                             n_queues=10,
                                             cset="container0_server")
@@ -65,7 +65,7 @@ class Config:
 
         server0_config = ServerConfig(pane=self.defaults.s_server_pane,
                                       idx=0, vmid=0,
-                                      port=1234, ncores=3, max_flows=4096, max_bytes=msize,
+                                      port=1234, ncores=5, max_flows=4096, max_bytes=msize,
                                       bench_dir=self.defaults.default_obenchmark_dir_virt,
                                       tas_dir=self.defaults.default_otas_dir_virt)
         self.server_configs.append(server0_config)
@@ -91,7 +91,7 @@ class Config:
                                             vtas_dir_virt=self.defaults.default_vtas_dir_virt,
                                             tas_dir=self.defaults.default_otas_dir_bare,
                                             idx=0,
-                                            n_cores=5,
+                                            n_cores=6,
                                             memory=5,
                                             n_queues=10,
                                             cset="container0_client")
@@ -108,7 +108,7 @@ class Config:
         client0_config = ClientConfig(exp_name=exp_name,
                                       pane=self.defaults.c_client_pane,
                                       idx=0, vmid=0, stack=self.cstack,
-                                      ip=self.defaults.server_ip, port=1234, ncores=3,
+                                      ip=self.defaults.server_ip, port=1234, ncores=5,
                                       msize=msize, mpending=1, nconns=100,
                                       open_delay=0, max_msgs_conn=flow_len, max_pend_conns=16,
                                       bench_dir=self.defaults.default_obenchmark_dir_virt,

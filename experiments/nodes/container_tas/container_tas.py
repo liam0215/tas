@@ -40,8 +40,8 @@ class ContainerTas(Node):
             remove_tas_socket_com = "find {} -name \"*flexnic_os*\" | xargs rm -r".format(self.tas_config.project_dir)
             self.cleanup_pane.send_keys(remove_tas_socket_com)
 
-        for container in self.containers:
-            container.shutdown()
+        remove_containers_com = "sudo docker container kill $(sudo docker container ls -q)"
+        self.cleanup_pane.send_keys(remove_containers_com)
     
     def start_tas(self):
         self.tas = TAS(defaults=self.defaults,

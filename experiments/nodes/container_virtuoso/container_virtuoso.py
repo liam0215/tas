@@ -46,8 +46,8 @@ class ContainerVirtuoso(Node):
             self.ovsbr_del("br0")
             self.stop_ovs(self.script_dir)
 
-        for container in self.containers:
-            container.shutdown()
+        remove_containers_com = "sudo docker container kill $(sudo docker container ls -q)"
+        self.cleanup_pane.send_keys(remove_containers_com)
 
     def start_tas(self):
         self.tas = TAS(defaults=self.defaults,

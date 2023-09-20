@@ -65,7 +65,7 @@ class Config:
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
-                n_cores=11,
+                n_cores=7,
                 cset="vm0_server",
                 memory=5)
 
@@ -122,7 +122,7 @@ class Config:
                 tas_dir=self.defaults.default_vtas_dir_bare,
                 tas_dir_virt=self.defaults.default_vtas_dir_virt,
                 idx=0,
-                n_cores=11,
+                n_cores=7,
                 cset="vm0_client",
                 memory=5)
 

@@ -77,6 +77,9 @@ class ContainerOVSDPDK(Node):
                 self.veth_base_name, container_config.id * 2)
             self.interface_del(veth_name_container)
 
+        remove_containers_com = "sudo docker container kill $(sudo docker container ls -q)"
+        self.cleanup_pane.send_keys(remove_containers_com)
+
     def start_containers(self):
         threads = []
         for container_config in self.container_configs:
