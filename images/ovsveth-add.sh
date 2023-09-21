@@ -26,6 +26,8 @@ sudo nsenter -t $PID -n ip link set $veth_name_container up
 sudo ip link set $veth_name_bridge up
 sudo nsenter -t $PID -n ip addr add ${veth_container_ip}/24 dev $veth_name_container
 sudo ip addr add ${veth_bridge_ip}/24 dev $veth_name_bridge
+sudo nsenter -t $PID -n sysctl -w net.ipv4.tcp_tw_reuse=1
+sudo nsenter -t $PID -n sysctl -w net.ipv4.tcp_fin_timeout=1
 
 sudo ethtool -K $veth_name_bridge tx off gso off tso off sg off gro off lro off rx on
 sudo nsenter -t $PID -n ethtool -K $veth_name_container tx off gso off tso off sg off gro off lro off rx on

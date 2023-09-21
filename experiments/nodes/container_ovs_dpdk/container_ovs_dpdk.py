@@ -82,6 +82,11 @@ class ContainerOVSDPDK(Node):
         prune_containers_com = "sudo docker container prune -f"
         self.cleanup_pane.send_keys(prune_containers_com)
 
+    def start_container(self, container):
+        container.start()
+        container.tcp_tw_reuse(1)
+        container.tcp_fin_timeout(1)
+
     def start_containers(self):
         threads = []
         for container_config in self.container_configs:

@@ -31,6 +31,14 @@ class Container:
         self.pane.send_keys(enter_container_cmd)
         time.sleep(1)
 
+    def tcp_tw_reuse(self, val):
+        cmd = "sudo sysctl -w net.ipv4.tcp_tw_reuse={}".format(val)
+        self.pane.send_keys(cmd)
+
+    def tcp_fin_timeout(self, val):
+        cmd = "sudo sysctl -w net.ipv4.tcp_fin_timeout={}".format(val)
+        self.pane.send_keys(cmd)
+
     def add_dummy_intf(self, interface, ip, mac):
         cmd = 'cd ' + self.container_config.manager_dir
         self.pane.send_keys(cmd)
