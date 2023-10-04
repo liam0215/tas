@@ -29,10 +29,10 @@ DPDK_PMDS ?= ixgbe i40e tap virtio mlx5
 
 DPDK_CPPFLAGS += -I$(RTE_SDK)/include -I$(RTE_SDK)/include/dpdk \
   -I$(RTE_SDK)/include/x86_64-linux-gnu/dpdk/
-DPDK_LDFLAGS+= -L$(RTE_SDK)/lib/
+DPDK_LDFLAGS+= -L$(RTE_SDK)/lib/ -L/usr/local/lib/x86_64-linux-gnu/
 DPDK_LDLIBS+= \
   -Wl,--whole-archive \
-   $(addprefix -lrte_pmd_,$(DPDK_PMDS)) \
+   $(addprefix -lrte_net_,$(DPDK_PMDS)) \
   -lmlx5 \
   -libverbs \
   -lrte_eal \

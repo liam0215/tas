@@ -22,13 +22,12 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <rte_eventdev_pmd.h>
 
 #include <assert.h>
 #include <rte_config.h>
 #include <rte_ip.h>
 #include <rte_hash_crc.h>
-#include<rte_malloc.h>
+#include <rte_malloc.h>
 
 #include <tas_memif.h>
 #include <utils_sync.h>
@@ -1106,7 +1105,7 @@ static void flow_tx_segment(struct dataplane_context *ctx,
   /* set segmentation offload if requested */
   if(config.fp_tso && payload > TCP_MSS) {
     struct rte_mbuf * restrict mb = (struct rte_mbuf *) nbh;
-    mb->ol_flags |= PKT_TX_IPV4 | PKT_TX_IP_CKSUM | PKT_TX_TCP_CKSUM | PKT_TX_TCP_SEG;
+    mb->ol_flags |= RTE_MBUF_F_TX_IPV4 | RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_TCP_CKSUM | RTE_MBUF_F_TX_TCP_SEG;
     mb->tx_offload = ((uint64_t) sizeof(struct eth_hdr)) |
       ((uint64_t) sizeof(p->ip) << RTE_MBUF_L2_LEN_BITS) |
       ((uint64_t) (sizeof(p->tcp) + optlen) << (RTE_MBUF_L2_LEN_BITS + RTE_MBUF_L3_LEN_BITS)) |
