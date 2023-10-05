@@ -982,14 +982,19 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
   uint32_t new_tail;
   struct pkt_tcp *p;
   struct tcp_mss_opt *opt_mss;
+  struct tcp_sack_opt *opt_sack;
   struct tcp_timestamp_opt *opt_ts;
   uint8_t optlen;
-  uint16_t len, off_ts, off_mss;
+  uint16_t len, off_ts, off_mss, off_sack;
 
   /* calculate header length depending on options */
   optlen = 0;
   off_mss = optlen;
   optlen += (mss_opt ? sizeof(*opt_mss) : 0);
+  if (config.tcp_sack && (flags & TCP_SYN)) {
+    off_sack = optlen;
+    optlen += sizeof(*opt_sack);
+  }
   off_ts = optlen;
   optlen += (ts_opt ? sizeof(*opt_ts) : 0);
   optlen = (optlen + 3) & ~3;
@@ -1034,6 +1039,13 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
     opt_mss->kind = TCP_OPT_MSS;
     opt_mss->length = sizeof(*opt_mss);
     opt_mss->mss = t_beui16(mss_opt);
+  }
+
+  /* if configured: add sack option */
+  if (config.tcp_sack && (flags & TCP_SYN)) {
+    opt_sack = (struct tcp_sack_opt *) ((uint8_t *) (p + 1) + off_sack);
+    opt_sack->kind = TCP_OPT_SACK;
+    opt_sack->length = sizeof(*opt_sack);
   }
 
   /* if requested: add timestamp option */

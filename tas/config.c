@@ -48,6 +48,7 @@ enum cfg_params {
   CP_TCP_TXBUF_LEN,
   CP_TCP_HANDSHAKE_TO,
   CP_TCP_HANDSHAKE_RETRIES,
+  CP_TCP_SACK,
   CP_CC,
   CP_CC_CONTROL_GRANULARITY,
   CP_CC_CONTROL_INTERVAL,
@@ -124,6 +125,9 @@ static struct option opts[] = {
     { .name = "tcp-handshake-retries",
       .has_arg = required_argument,
       .val = CP_TCP_HANDSHAKE_RETRIES },
+    { .name = "sack",
+      .has_arg = no_argument,
+      .val = CP_TCP_SACK },
     { .name = "cc",
       .has_arg = required_argument,
       .val = CP_CC },
@@ -331,6 +335,9 @@ int config_parse(struct configuration *c, int argc, char *argv[])
           goto failed;
         }
         break;
+      case CP_TCP_SACK:
+        c->tcp_sack = 1;
+        break;
       case CP_CC:
         if (!strcmp(optarg, "dctcp-win")) {
           c->cc_algorithm = CONFIG_CC_DCTCP_WIN;
@@ -528,7 +535,7 @@ int config_parse(struct configuration *c, int argc, char *argv[])
         }
         break;
       case CP_QUIET:
-	c->quiet = 1;
+	      c->quiet = 1;
         break;
 
       case -1:
@@ -573,6 +580,7 @@ static int config_defaults(struct configuration *c, char *progname)
   c->tcp_txbuf_len = 8192;
   c->tcp_handshake_to = 10000;
   c->tcp_handshake_retries = 10;
+  c->tcp_sack = 0;
   c->cc_algorithm = CONFIG_CC_DCTCP_RATE;
   c->cc_control_granularity = 50;
   c->cc_control_interval = 2;
@@ -644,6 +652,8 @@ static void print_usage(struct configuration *c, char *progname)
           "[default: %"PRIu32"]\n"
       "  --tcp-handshake-retries=RETRIES  Handshake retries "
           "[default: %"PRIu32"]\n"
+      "  --tcp-sack                      Enable SACK "
+          "[default: disabled]\n"
       "\n"
       "Congestion control parameters:\n"
       "  --cc=ALGORITHM              Congestion-control algorithm "
