@@ -476,6 +476,8 @@ struct connection {
     uint32_t local_seq;
     /** Timestamp received with SYN/SYN-ACK packet */
     uint32_t syn_ts;
+    /** SACK permitted (option received on SYN/SYN-ACK packet) */
+    uint32_t sack_permitted;
   /**@}*/
 
   /**

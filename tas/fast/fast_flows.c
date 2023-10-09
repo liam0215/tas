@@ -288,7 +288,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
   int no_permanent_sp = 0;
   uint16_t tcp_extra_hlen, trim_start, trim_end;
   uint16_t flow_id = fs - fp_state->flowst;
-  int trigger_ack = 0, fin_bump = 0;
+  int trigger_ack = 0, fin_bump = 0, i = 0;
 
   tcp_extra_hlen = (TCPH_HDRLEN(&p->tcp) - 5) * 4;
   payload_off = sizeof(*p) + tcp_extra_hlen;
@@ -438,30 +438,56 @@ int fast_flows_packet(struct dataplane_context *ctx,
       goto unlock;
     }
 
-    /* otherwise check if we can add it to the out of order interval */
-    if (fs->rx_ooo_len == 0) {
-      fs->rx_ooo_start = seq;
-      fs->rx_ooo_len = payload_bytes;
+    // Index of the first free region in rx_ooo_intervals
+    uint32_t idx_free_region = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
+    // Index of the interval that starts at the end of packet being processed
+    uint32_t idx_start_merge = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
+    // Index of the interval that ends at the start of packet being processed
+    uint32_t idx_end_merge = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
+
+    for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+      struct flextcp_pl_ooo_interval *interval = &fs->rx_ooo_intervals[i];
+      /* otherwise check if we can add it to an out of order interval */
+      if (interval->ooo_len == 0 && idx_free_region == FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+        idx_free_region = i;
+      // } else if (interval->ooo_len != 0 && seq + payload_bytes == interval->ooo_start) {
+      } else {
+        if (interval->ooo_len != 0 && seq + payload_bytes >= interval->ooo_start && seq < interval->ooo_start) {
+          /* TODO: those two overlap checks should be more sophisticated */
+          idx_start_merge = i;
+        // } else if (interval->ooo_len != 0 && interval->ooo_start + interval->ooo_len == seq) {
+        }
+        if (interval->ooo_len != 0 && interval->ooo_start + interval->ooo_len >= seq && interval->ooo_start + interval->ooo_len < seq + payload_bytes) {
+          /* TODO: those two overlap checks should be more sophisticated */
+          idx_end_merge = i;
+        }
+      }
+    }
+
+    if (idx_start_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS && idx_end_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+      // Expand interval at idx_end_merge to include the new packet and the region it touches at idx_start_merge
+      int idx_end_merge_region_start = fs->rx_ooo_intervals[idx_end_merge].ooo_start;
+      int interval_start = idx_end_merge_region_start < seq ? idx_end_merge_region_start : seq;
+      int idx_start_merge_region_end = fs->rx_ooo_intervals[idx_start_merge].ooo_start + fs->rx_ooo_intervals[idx_start_merge].ooo_len;
+      int interval_end = idx_start_merge_region_end > seq + payload_bytes ? idx_start_merge_region_end : seq + payload_bytes;
+      fs->rx_ooo_intervals[idx_start_merge].ooo_len = 0;
+      fs->rx_ooo_intervals[idx_end_merge].ooo_len = interval_end - interval_start;
+      fs->rx_ooo_intervals[idx_end_merge].ooo_start = interval_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
-      /*fprintf(stderr, "created OOO interval (%p start=%u len=%u)\n",
-          fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
-    } else if (seq + payload_bytes == fs->rx_ooo_start) {
-      /* TODO: those two overlap checks should be more sophisticated */
-      fs->rx_ooo_start = seq;
-      fs->rx_ooo_len += payload_bytes;
+    } else if (idx_start_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+      // Expand start of interval at idx_start_merge to include the new packet
+      fs->rx_ooo_intervals[idx_start_merge].ooo_len = fs->rx_ooo_intervals[idx_start_merge].ooo_start + fs->rx_ooo_intervals[idx_start_merge].ooo_len - seq;
+      fs->rx_ooo_intervals[idx_start_merge].ooo_start = seq;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
-      /*fprintf(stderr, "extended OOO interval (%p start=%u len=%u)\n",
-          fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
-    } else if (fs->rx_ooo_start + fs->rx_ooo_len == seq) {
-      /* TODO: those two overlap checks should be more sophisticated */
-      fs->rx_ooo_len += payload_bytes;
+    } else if (idx_end_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+      // Expand end of interval at idx_end_merge to include the new packet
+      fs->rx_ooo_intervals[idx_end_merge].ooo_len = seq + payload_bytes - fs->rx_ooo_intervals[idx_end_merge].ooo_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
-      /*fprintf(stderr, "extended OOO interval (%p start=%u len=%u)\n",
-          fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
-    } else {
-      /*fprintf(stderr, "Sad, no luck with OOO interval (%p ooo.start=%u "
-          "ooo.len=%u seq=%u bytes=%u)\n", fs, fs->rx_ooo_start,
-          fs->rx_ooo_len, seq, payload_bytes);*/
+    } else if (idx_free_region < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+      // Create new ooo interval at idx_free_region
+      fs->rx_ooo_intervals[idx_free_region].ooo_start = seq;
+      fs->rx_ooo_intervals[idx_free_region].ooo_len = payload_bytes;
+      flow_rx_seq_write(fs, seq, payload_bytes, payload);
     }
     goto unlock;
   }
@@ -528,36 +554,42 @@ int fast_flows_packet(struct dataplane_context *ctx,
 #ifdef FLEXNIC_PL_OOO_RECV
     /* if we have out of order segments, check whether buffer is continuous
      * or superfluous */
-    if (UNLIKELY(fs->rx_ooo_len != 0)) {
-      if (tcp_trim_rxbuf(fs, fs->rx_ooo_start, fs->rx_ooo_len, &trim_start,
-            &trim_end) != 0) {
-          /*fprintf(stderr, "dropping ooo (%p ooo.start=%u ooo.len=%u seq=%u "
+    for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+      struct flextcp_pl_ooo_interval *interval = &fs->rx_ooo_intervals[i];
+      if (UNLIKELY(interval->ooo_len != 0)) {
+        if (tcp_trim_rxbuf(fs, interval->ooo_start, interval->ooo_len, &trim_start,
+              &trim_end) != 0) {
+            /*fprintf(stderr, "dropping ooo (%p ooo.start=%u ooo.len=%u seq=%u "
+                "len=%u next_seq=%u)\n", fs, fs->rx_ooo_start, fs->rx_ooo_len, seq,
+                payload_bytes, fs->rx_next_seq);*/
+          /* completely superfluous: drop out of order interval */
+          interval->ooo_len = 0;
+        } else {
+          /* adjust based on overlap */
+          interval->ooo_start += trim_start;
+          interval->ooo_len -= trim_start + trim_end;
+          /*fprintf(stderr, "adjusting ooo (%p ooo.start=%u ooo.len=%u seq=%u "
               "len=%u next_seq=%u)\n", fs, fs->rx_ooo_start, fs->rx_ooo_len, seq,
               payload_bytes, fs->rx_next_seq);*/
-        /* completely superfluous: drop out of order interval */
-        fs->rx_ooo_len = 0;
-      } else {
-        /* adjust based on overlap */
-        fs->rx_ooo_start += trim_start;
-        fs->rx_ooo_len -= trim_start + trim_end;
-        /*fprintf(stderr, "adjusting ooo (%p ooo.start=%u ooo.len=%u seq=%u "
-            "len=%u next_seq=%u)\n", fs, fs->rx_ooo_start, fs->rx_ooo_len, seq,
-            payload_bytes, fs->rx_next_seq);*/
-        if (fs->rx_ooo_len > 0 && fs->rx_ooo_start == fs->rx_next_seq) {
-          /* yay, we caught up, make continuous and drop OOO interval */
-          /*fprintf(stderr, "caught up with ooo buffer (%p start=%u len=%u)\n",
-              fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
+          if (interval->ooo_len > 0 && interval->ooo_start == fs->rx_next_seq) {
+            /* yay, we caught up, make continuous and drop OOO interval */
+            /*fprintf(stderr, "caught up with ooo buffer (%p start=%u len=%u)\n",
+                fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
 
-          rx_bump += fs->rx_ooo_len;
-          fs->rx_avail -= fs->rx_ooo_len;
-          fs->rx_next_pos += fs->rx_ooo_len;
-          if (fs->rx_next_pos >= fs->rx_len) {
-            fs->rx_next_pos -= fs->rx_len;
+            rx_bump += interval->ooo_len;
+            fs->rx_avail -= interval->ooo_len;
+            fs->rx_next_pos += interval->ooo_len;
+            if (fs->rx_next_pos >= fs->rx_len) {
+              fs->rx_next_pos -= fs->rx_len;
+            }
+            assert(fs->rx_next_pos < fs->rx_len);
+            fs->rx_next_seq += interval->ooo_len;
+
+            interval->ooo_len = 0;
+
+            // We can break from the loop since any other ooo regions must be disjoint
+            break;
           }
-          assert(fs->rx_next_pos < fs->rx_len);
-          fs->rx_next_seq += fs->rx_ooo_len;
-
-          fs->rx_ooo_len = 0;
         }
       }
     }

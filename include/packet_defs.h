@@ -169,7 +169,8 @@ struct tcp_hdr {
 #define TCP_OPT_END_OF_OPTIONS 0
 #define TCP_OPT_NO_OP 1
 #define TCP_OPT_MSS 2
-#define TCP_OPT_SACK 4
+#define TCP_OPT_SACK_PERMITTED 4
+#define TCP_OPT_SACK 5
 #define TCP_OPT_TIMESTAMP 8
 struct tcp_mss_opt {
   uint8_t kind;
@@ -185,7 +186,7 @@ struct tcp_timestamp_opt {
   beui32_t ts_ecr;
 } __attribute__((packed));
 
-struct tcp_sack_opt {
+struct tcp_sack_permitted_opt {
   uint8_t kind;
   uint8_t length;
 } __attribute__((packed));

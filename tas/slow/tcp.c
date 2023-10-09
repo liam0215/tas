@@ -70,7 +70,9 @@ struct backlog_slot {
 
 struct tcp_opts {
   struct tcp_mss_opt *mss;
+  struct tcp_sack_permitted_opt *sack_permitted;
   struct tcp_timestamp_opt *ts;
+  struct tcp_sack_opt *sack;
 };
 
 static int conn_arp_done(struct connection *conn);
@@ -982,7 +984,7 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
   uint32_t new_tail;
   struct pkt_tcp *p;
   struct tcp_mss_opt *opt_mss;
-  struct tcp_sack_opt *opt_sack;
+  struct tcp_sack_permitted_opt *opt_sack_permitted;
   struct tcp_timestamp_opt *opt_ts;
   uint8_t optlen;
   uint16_t len, off_ts, off_mss, off_sack;
@@ -993,7 +995,7 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
   optlen += (mss_opt ? sizeof(*opt_mss) : 0);
   if (config.tcp_sack && (flags & TCP_SYN)) {
     off_sack = optlen;
-    optlen += sizeof(*opt_sack);
+    optlen += sizeof(*opt_sack_permitted);
   }
   off_ts = optlen;
   optlen += (ts_opt ? sizeof(*opt_ts) : 0);
@@ -1043,9 +1045,9 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
 
   /* if configured: add sack option */
   if (config.tcp_sack && (flags & TCP_SYN)) {
-    opt_sack = (struct tcp_sack_opt *) ((uint8_t *) (p + 1) + off_sack);
-    opt_sack->kind = TCP_OPT_SACK;
-    opt_sack->length = sizeof(*opt_sack);
+    opt_sack_permitted = (struct tcp_sack_permitted_opt *) ((uint8_t *) (p + 1) + off_sack);
+    opt_sack_permitted->kind = TCP_OPT_SACK_PERMITTED;
+    opt_sack_permitted->length = sizeof(*opt_sack_permitted);
   }
 
   /* if requested: add timestamp option */
@@ -1103,6 +1105,8 @@ static inline int parse_options(const struct pkt_tcp *p, uint16_t len,
 
   opts->ts = NULL;
   opts->mss = NULL;
+  opts->sack = NULL;
+  opts->sack_permitted = NULL;
 
   /* whole header not in buf */
   if (TCPH_HDRLEN(&p->tcp) < 5 || opts_len > (len - sizeof(*p))) {

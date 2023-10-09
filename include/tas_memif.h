@@ -220,6 +220,14 @@ struct flextcp_pl_appctx {
 
 /** Enable out of order receive processing members */
 #define FLEXNIC_PL_OOO_RECV 1
+#define FLEXNIC_PL_OOO_RECV_MAX_INTERVALS 2
+
+struct flextcp_pl_ooo_interval {
+  /* Start of interval of out-of-order received data */
+  uint32_t ooo_start;
+  /* Length of interval of out-of-order received data */
+  uint32_t ooo_len;
+} __attribute__((packed));
 
 #define FLEXNIC_PL_FLOWST_SLOWPATH 1
 #define FLEXNIC_PL_FLOWST_ECN 8
@@ -283,10 +291,7 @@ struct flextcp_pl_flowst {
   uint32_t rx_dupack_cnt;
 
 #ifdef FLEXNIC_PL_OOO_RECV
-  /* Start of interval of out-of-order received data */
-  uint32_t rx_ooo_start;
-  /* Length of interval of out-of-order received data */
-  uint32_t rx_ooo_len;
+  struct flextcp_pl_ooo_interval rx_ooo_intervals[FLEXNIC_PL_OOO_RECV_MAX_INTERVALS];
 #endif
 
   /** Number of bytes available to be sent */
