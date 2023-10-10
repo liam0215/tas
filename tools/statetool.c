@@ -117,6 +117,21 @@ static int dump_flow(uint32_t flow_id)
     return 0;
   }
 
+#ifdef FLEXNIC_PL_OOO_RECV
+  char ooo_stats[FLEXNIC_PL_OOO_RECV_MAX_INTERVALS * 45 + 1];
+  int i;
+  for(i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+    char ooo_stats_tmp[46];
+    snprintf(ooo_stats_tmp,
+            46,
+            "  ooo_%d_start=%08x\n"
+            "  ooo_%d_len=%08x\n",
+            i, fs->rx_ooo_intervals[i].ooo_start,
+            i, fs->rx_ooo_intervals[i].ooo_len);
+    strcat(ooo_stats, ooo_stats_tmp);
+  }
+#endif
+
   memcpy(&mac, &fs->remote_mac, 6);
   printf("flow %u {\n"
          "  opaque=%016"PRIx64"\n"
@@ -142,8 +157,7 @@ static int dump_flow(uint32_t flow_id)
          "        next_seq=%010u\n"
          "      dupack_cnt=%08x\n"
 #ifdef FLEXNIC_PL_OOO_RECV
-         "       ooo_start=%08x\n"
-         "         ooo_len=%08x\n"
+         "%s"
 #endif
          "  }\n"
          "  tx {\n"
@@ -174,7 +188,7 @@ static int dump_flow(uint32_t flow_id)
       (fs->rx_base_sp & FLEXNIC_PL_FLOWST_RX_MASK), fs->rx_len, fs->rx_avail,
       fs->rx_remote_avail, fs->rx_next_pos, fs->rx_next_seq, fs->rx_dupack_cnt,
 #ifdef FLEXNIC_PL_OOO_RECV
-      fs->rx_ooo_start, fs->rx_ooo_len,
+      ooo_stats,
 #endif
       fs->tx_base, fs->tx_len, fs->tx_avail, fs->tx_sent, fs->tx_next_pos,
       fs->tx_next_seq, fs->tx_next_ts,

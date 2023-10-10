@@ -438,53 +438,64 @@ int fast_flows_packet(struct dataplane_context *ctx,
       goto unlock;
     }
 
-    // Index of the first free region in rx_ooo_intervals
+    /* Index of the first free region in rx_ooo_intervals */
     uint32_t idx_free_region = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
-    // Index of the interval that starts at the end of packet being processed
+    /* Index of the interval contiguous with the packet and starts after it */
     uint32_t idx_start_merge = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
-    // Index of the interval that ends at the start of packet being processed
+    /* Index of the interval contiguous with the packet and ends before the packet ends*/
     uint32_t idx_end_merge = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
 
     for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
       struct flextcp_pl_ooo_interval *interval = &fs->rx_ooo_intervals[i];
       /* otherwise check if we can add it to an out of order interval */
       if (interval->ooo_len == 0 && idx_free_region == FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+        /* Set idx_free_region to the index of rx_ooo_intervals of the first interval not in use*/
         idx_free_region = i;
-      // } else if (interval->ooo_len != 0 && seq + payload_bytes == interval->ooo_start) {
       } else {
         if (interval->ooo_len != 0 && seq + payload_bytes >= interval->ooo_start && seq < interval->ooo_start) {
-          /* TODO: those two overlap checks should be more sophisticated */
+          /* Check if the packet data is contiguous with the interval and before the start of the interval */
           idx_start_merge = i;
-        // } else if (interval->ooo_len != 0 && interval->ooo_start + interval->ooo_len == seq) {
         }
         if (interval->ooo_len != 0 && interval->ooo_start + interval->ooo_len >= seq && interval->ooo_start + interval->ooo_len < seq + payload_bytes) {
-          /* TODO: those two overlap checks should be more sophisticated */
+          /* Check if the packet data is contiguous with the interval and after the end of the interval */
           idx_end_merge = i;
         }
       }
     }
 
     if (idx_start_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS && idx_end_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
-      // Expand interval at idx_end_merge to include the new packet and the region it touches at idx_start_merge
-      int idx_end_merge_region_start = fs->rx_ooo_intervals[idx_end_merge].ooo_start;
-      int interval_start = idx_end_merge_region_start < seq ? idx_end_merge_region_start : seq;
-      int idx_start_merge_region_end = fs->rx_ooo_intervals[idx_start_merge].ooo_start + fs->rx_ooo_intervals[idx_start_merge].ooo_len;
-      int interval_end = idx_start_merge_region_end > seq + payload_bytes ? idx_start_merge_region_end : seq + payload_bytes;
+      /* Either idx_start_merge and idx_end_merge are different, in which case the regions must be merged,
+      or they are the same, in which case the packet data is a superset of the interval */
+      uint32_t idx_end_merge_region_start = fs->rx_ooo_intervals[idx_end_merge].ooo_start;
+      /* If the packet is a superset of the intervals, the interval should start at the
+      start of the packet */
+      uint32_t interval_start = idx_end_merge_region_start < seq ? 
+                                idx_end_merge_region_start : seq;
+
+      uint32_t idx_start_merge_region_end = fs->rx_ooo_intervals[idx_start_merge].ooo_start + fs->rx_ooo_intervals[idx_start_merge].ooo_len;
+      /* If the packet is a superset of the intervals, the interval should end at the
+      end of the packet*/
+      uint32_t interval_end = idx_start_merge_region_end > seq + payload_bytes ? 
+                              idx_start_merge_region_end : seq + payload_bytes;
+
       fs->rx_ooo_intervals[idx_start_merge].ooo_len = 0;
       fs->rx_ooo_intervals[idx_end_merge].ooo_len = interval_end - interval_start;
       fs->rx_ooo_intervals[idx_end_merge].ooo_start = interval_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
     } else if (idx_start_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
-      // Expand start of interval at idx_start_merge to include the new packet
-      fs->rx_ooo_intervals[idx_start_merge].ooo_len = fs->rx_ooo_intervals[idx_start_merge].ooo_start + fs->rx_ooo_intervals[idx_start_merge].ooo_len - seq;
+      /* Expand start of interval at idx_start_merge to include the new packet */
+      uint32_t idx_start_merge_region_end = fs->rx_ooo_intervals[idx_start_merge].ooo_start +
+                                            fs->rx_ooo_intervals[idx_start_merge].ooo_len;
+      fs->rx_ooo_intervals[idx_start_merge].ooo_len = idx_start_merge_region_end - seq;
       fs->rx_ooo_intervals[idx_start_merge].ooo_start = seq;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
     } else if (idx_end_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
-      // Expand end of interval at idx_end_merge to include the new packet
-      fs->rx_ooo_intervals[idx_end_merge].ooo_len = seq + payload_bytes - fs->rx_ooo_intervals[idx_end_merge].ooo_start;
+      /* Expand end of interval at idx_end_merge to include the new packet */
+      fs->rx_ooo_intervals[idx_end_merge].ooo_len = seq + payload_bytes - 
+                                                    fs->rx_ooo_intervals[idx_end_merge].ooo_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
     } else if (idx_free_region < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
-      // Create new ooo interval at idx_free_region
+      /* Create new ooo interval at idx_free_region */
       fs->rx_ooo_intervals[idx_free_region].ooo_start = seq;
       fs->rx_ooo_intervals[idx_free_region].ooo_len = payload_bytes;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
@@ -560,7 +571,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
         if (tcp_trim_rxbuf(fs, interval->ooo_start, interval->ooo_len, &trim_start,
               &trim_end) != 0) {
             /*fprintf(stderr, "dropping ooo (%p ooo.start=%u ooo.len=%u seq=%u "
-                "len=%u next_seq=%u)\n", fs, fs->rx_ooo_start, fs->rx_ooo_len, seq,
+                "len=%u next_seq=%u)\n", fs, interval->ooo_start, interval->ooo_len, seq,
                 payload_bytes, fs->rx_next_seq);*/
           /* completely superfluous: drop out of order interval */
           interval->ooo_len = 0;
@@ -569,12 +580,12 @@ int fast_flows_packet(struct dataplane_context *ctx,
           interval->ooo_start += trim_start;
           interval->ooo_len -= trim_start + trim_end;
           /*fprintf(stderr, "adjusting ooo (%p ooo.start=%u ooo.len=%u seq=%u "
-              "len=%u next_seq=%u)\n", fs, fs->rx_ooo_start, fs->rx_ooo_len, seq,
+              "len=%u next_seq=%u)\n", fs, interval->ooo_start, interval->ooo_len, seq,
               payload_bytes, fs->rx_next_seq);*/
           if (interval->ooo_len > 0 && interval->ooo_start == fs->rx_next_seq) {
             /* yay, we caught up, make continuous and drop OOO interval */
             /*fprintf(stderr, "caught up with ooo buffer (%p start=%u len=%u)\n",
-                fs, fs->rx_ooo_start, fs->rx_ooo_len);*/
+                fs, interval->ooo_start, interval->ooo_len);*/
 
             rx_bump += interval->ooo_len;
             fs->rx_avail -= interval->ooo_len;
@@ -587,7 +598,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
 
             interval->ooo_len = 0;
 
-            // We can break from the loop since any other ooo regions must be disjoint
+            /* We can break from the loop since any other ooo regions must be disjoint */
             break;
           }
         }
@@ -599,7 +610,15 @@ int fast_flows_packet(struct dataplane_context *ctx,
   if ((TCPH_FLAGS(&p->tcp) & TCP_FIN) == TCP_FIN &&
       !(fs->rx_base_sp & FLEXNIC_PL_FLOWST_RXFIN))
   {
-    if (fs->rx_next_seq == f_beui32(p->tcp.seqno) + orig_payload && !fs->rx_ooo_len) {
+    uint32_t ooo_exists = 0;
+#ifdef FLEXNIC_PL_OOO_RECV
+    for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+      ooo_exists |= fs->rx_ooo_intervals[i].ooo_len;
+      if (ooo_exists) break;
+    }
+#endif
+
+    if (fs->rx_next_seq == f_beui32(p->tcp.seqno) + orig_payload && !ooo_exists) {
       fin_bump = 1;
       fs->rx_base_sp |= FLEXNIC_PL_FLOWST_RXFIN;
       /* FIN takes up sequence number space */
