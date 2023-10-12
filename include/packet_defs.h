@@ -191,6 +191,17 @@ struct tcp_sack_permitted_opt {
   uint8_t length;
 } __attribute__((packed));
 
+struct tcp_sack_block {
+  beui32_t left;
+  beui32_t right;
+} __attribute__((packed));
+
+struct tcp_sack_opt {
+  uint8_t kind;
+  uint8_t length;
+  struct tcp_sack_block blocks[];
+} __attribute__((packed));
+
 /******************************************************************************/
 /* Object framing */
 

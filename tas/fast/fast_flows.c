@@ -288,7 +288,12 @@ int fast_flows_packet(struct dataplane_context *ctx,
   int no_permanent_sp = 0;
   uint16_t tcp_extra_hlen, trim_start, trim_end;
   uint16_t flow_id = fs - fp_state->flowst;
-  int trigger_ack = 0, fin_bump = 0, i = 0;
+  int trigger_ack = 0, fin_bump = 0;
+
+#ifdef FLEXNIC_PL_OOO_RECV
+  int i = 0;
+  uint32_t first_sack_block = FLEXNIC_PL_OOO_RECV_MAX_INTERVALS;
+#endif
 
   tcp_extra_hlen = (TCPH_HDRLEN(&p->tcp) - 5) * 4;
   payload_off = sizeof(*p) + tcp_extra_hlen;
@@ -482,6 +487,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
       fs->rx_ooo_intervals[idx_end_merge].ooo_len = interval_end - interval_start;
       fs->rx_ooo_intervals[idx_end_merge].ooo_start = interval_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      first_sack_block = idx_end_merge;
     } else if (idx_start_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
       /* Expand start of interval at idx_start_merge to include the new packet */
       uint32_t idx_start_merge_region_end = fs->rx_ooo_intervals[idx_start_merge].ooo_start +
@@ -489,16 +495,19 @@ int fast_flows_packet(struct dataplane_context *ctx,
       fs->rx_ooo_intervals[idx_start_merge].ooo_len = idx_start_merge_region_end - seq;
       fs->rx_ooo_intervals[idx_start_merge].ooo_start = seq;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      first_sack_block = idx_start_merge;
     } else if (idx_end_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
       /* Expand end of interval at idx_end_merge to include the new packet */
       fs->rx_ooo_intervals[idx_end_merge].ooo_len = seq + payload_bytes - 
                                                     fs->rx_ooo_intervals[idx_end_merge].ooo_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      first_sack_block = idx_end_merge;
     } else if (idx_free_region < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
       /* Create new ooo interval at idx_free_region */
       fs->rx_ooo_intervals[idx_free_region].ooo_start = seq;
       fs->rx_ooo_intervals[idx_free_region].ooo_len = payload_bytes;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
+      first_sack_block = idx_free_region;
     }
     goto unlock;
   }
@@ -681,6 +690,49 @@ unlock:
 
   /* if we need to send an ack, also send packet to TX pipeline to do so */
   if (trigger_ack) {
+#ifdef FLEXNIC_PL_OOO_RECV
+    uint32_t ooo_exists = 0;
+    if (first_sack_block < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+      ooo_exists = 1;
+    } else {
+      for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+        ooo_exists |= fs->rx_ooo_intervals[i].ooo_len;
+        if (ooo_exists) break;
+      }
+    }
+    uint8_t *opt = (uint8_t *) (p + 1);
+    uint64_t opt_len_remaining = 40 - (((uint8_t *) opts->ts - opt) + sizeof(*opts->ts));
+    if (ooo_exists && opt_len_remaining >= sizeof(struct tcp_sack_opt) + sizeof(struct tcp_sack_block) + 2) {
+      uint8_t *noops = (uint8_t *) opts->ts + sizeof(*opts->ts);
+      noops[0] = TCP_OPT_NO_OP;
+      noops[1] = TCP_OPT_NO_OP;
+      opt_len_remaining -= 2;
+      struct tcp_sack_opt *sack_opt = (struct tcp_sack_opt *) (noops + 2);
+      sack_opt->kind = TCP_OPT_SACK;
+      sack_opt->length = sizeof(struct tcp_sack_opt);
+      uint32_t blocks_index = 0;
+      if (first_sack_block < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
+        sack_opt->blocks[blocks_index].left = t_beui32(fs->rx_ooo_intervals[i].ooo_start);
+        sack_opt->blocks[blocks_index].right = t_beui32(fs->rx_ooo_intervals[i].ooo_start + fs->rx_ooo_intervals[i].ooo_len);
+        blocks_index++;
+        opt_len_remaining -= sizeof(struct tcp_sack_block);
+        sack_opt->length += sizeof(struct tcp_sack_block);
+      }
+      for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+        if (opt_len_remaining < sizeof(struct tcp_sack_block)) {
+          break;
+        }
+        if (fs->rx_ooo_intervals[i].ooo_len > 0 && i != first_sack_block) {
+          sack_opt->blocks[blocks_index].left = t_beui32(fs->rx_ooo_intervals[i].ooo_start);
+          sack_opt->blocks[blocks_index].right = t_beui32(fs->rx_ooo_intervals[i].ooo_start + fs->rx_ooo_intervals[i].ooo_len);
+          blocks_index++;
+          opt_len_remaining -= sizeof(struct tcp_sack_block);
+          sack_opt->length += sizeof(struct tcp_sack_block);
+        }
+      }
+      TCPH_HDRLEN_SET(&p->tcp, TCPH_HDRLEN(&p->tcp) + ((sack_opt->length + 2) / 4));
+    }
+#endif
     flow_tx_ack(ctx, fs->tx_next_seq, fs->rx_next_seq, fs->rx_avail,
         fs->tx_next_ts, ts, nbh, opts->ts);
   }

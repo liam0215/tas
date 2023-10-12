@@ -186,6 +186,7 @@ int tcp_open(struct app_context *ctx, uint64_t opaque, uint32_t remote_ip,
   conn->comp.notify_fd = -1;
   conn->comp.status = 0;
 
+  conn->sack_permitted = config.tcp_sack ? 1 : 0;
 
   /* resolve IP to mac */
   ret = routing_resolve(&conn->comp, remote_ip, &conn->remote_mac);
@@ -566,6 +567,10 @@ static int conn_syn_sent_packet(struct connection *c, const struct pkt_tcp *p,
   c->local_seq = f_beui32(p->tcp.ackno);
   c->syn_ts = f_beui32(opts->ts->ts_val);
 
+  if (opts->sack_permitted == NULL) {
+    c->sack_permitted = 0;
+  }
+
   /* enable ECN if SYN-ACK confirms */
   if (ecn_flags == TCP_ECE) {
     c->flags |= NICIF_CONN_ECN;
@@ -936,6 +941,8 @@ static void listener_accept(struct listener *l)
   c->local_seq = 1; /* TODO: generate random */
   c->syn_ts = f_beui32(opts.ts->ts_val);
 
+  c->sack_permitted = config.tcp_sack && opts.sack_permitted ? 1 : 0;
+
   /* check if ECN is offered */
   ecn_flags = TCPH_FLAGS(&p->tcp) & (TCP_ECE | TCP_CWR);
   if (ecn_flags == (TCP_ECE | TCP_CWR)) {
@@ -979,7 +986,7 @@ out:
 static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
     uint16_t remote_port, uint16_t local_port, uint32_t local_seq,
     uint32_t remote_seq, uint16_t flags, int ts_opt, uint32_t ts_echo,
-    uint16_t mss_opt)
+    uint16_t mss_opt, uint32_t sack_permitted)
 {
   uint32_t new_tail;
   struct pkt_tcp *p;
@@ -987,14 +994,14 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
   struct tcp_sack_permitted_opt *opt_sack_permitted;
   struct tcp_timestamp_opt *opt_ts;
   uint8_t optlen;
-  uint16_t len, off_ts, off_mss, off_sack;
+  uint16_t len, off_ts, off_mss, off_sack_perm;
 
   /* calculate header length depending on options */
   optlen = 0;
   off_mss = optlen;
   optlen += (mss_opt ? sizeof(*opt_mss) : 0);
-  if (config.tcp_sack && (flags & TCP_SYN)) {
-    off_sack = optlen;
+  if (sack_permitted && (flags & TCP_SYN)) {
+    off_sack_perm = optlen;
     optlen += sizeof(*opt_sack_permitted);
   }
   off_ts = optlen;
@@ -1044,8 +1051,8 @@ static inline int send_control_raw(uint64_t remote_mac, uint32_t remote_ip,
   }
 
   /* if configured: add sack option */
-  if (config.tcp_sack && (flags & TCP_SYN)) {
-    opt_sack_permitted = (struct tcp_sack_permitted_opt *) ((uint8_t *) (p + 1) + off_sack);
+  if (sack_permitted && (flags & TCP_SYN)) {
+    opt_sack_permitted = (struct tcp_sack_permitted_opt *) ((uint8_t *) (p + 1) + off_sack_perm);
     opt_sack_permitted->kind = TCP_OPT_SACK_PERMITTED;
     opt_sack_permitted->length = sizeof(*opt_sack_permitted);
   }
@@ -1074,7 +1081,7 @@ static inline int send_control(const struct connection *conn, uint16_t flags,
 {
   return send_control_raw(conn->remote_mac, conn->remote_ip, conn->remote_port,
       conn->local_port, conn->local_seq, conn->remote_seq, flags, ts_opt,
-      ts_echo, mss_opt);
+      ts_echo, mss_opt, conn->sack_permitted);
 }
 
 static inline int send_reset(const struct pkt_tcp *p,
@@ -1092,7 +1099,7 @@ static inline int send_reset(const struct pkt_tcp *p,
   memcpy(&remote_mac, &p->eth.src, ETH_ADDR_LEN);
   return send_control_raw(remote_mac, f_beui32(p->ip.src), f_beui16(p->tcp.src),
       f_beui16(p->tcp.dest), f_beui32(p->tcp.ackno), f_beui32(p->tcp.seqno) + 1,
-      TCP_RST | TCP_ACK, ts_opt, ts_val, 0);
+      TCP_RST | TCP_ACK, ts_opt, ts_val, 0, 0);
 }
 
 static inline int parse_options(const struct pkt_tcp *p, uint16_t len,
@@ -1143,6 +1150,22 @@ static inline int parse_options(const struct pkt_tcp *p, uint16_t len,
         }
 
         opts->ts = (struct tcp_timestamp_opt *) (opt + off);
+      } else if (opt_kind == TCP_OPT_SACK_PERMITTED) {
+        if (opt_len != sizeof(struct tcp_sack_permitted_opt)) {
+          fprintf(stderr, "parse_options: sack permitted option size wrong:"
+                  " opt_len=%u so=%zu\n", opt_len, sizeof(struct tcp_sack_permitted_opt));
+          return -1;
+        }
+
+        opts->sack_permitted = (struct tcp_sack_permitted_opt *) (opt + off);
+      } else if (opt_kind == TCP_OPT_SACK) {
+        if (opt_len < sizeof(struct tcp_sack_opt)) {
+          fprintf(stderr, "parse_options: sack option size wrong:"
+           " opt_len=%u so=%zu\n", opt_len, sizeof(struct tcp_sack_opt));
+          return -1;
+        }
+
+        opts->sack = (struct tcp_sack_opt *) (opt + off);
       }
     }
     off += opt_len;

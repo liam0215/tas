@@ -228,6 +228,8 @@ static inline uint32_t tcp_txavail(const struct flextcp_pl_flowst *fs,
 struct tcp_opts {
   /** Timestamp option */
   struct tcp_timestamp_opt *ts;
+  /** Selective Acknowledgement options*/
+  struct tcp_sack_opt *sack;
 };
 
 /**
@@ -280,6 +282,14 @@ static inline int tcp_parse_options(const struct pkt_tcp *p, uint16_t len,
         }
 
         opts->ts = (struct tcp_timestamp_opt *) (opt + off);
+      } else if (opt_kind == TCP_OPT_SACK) {
+        if (opt_len < sizeof(struct tcp_sack_opt) + sizeof(struct tcp_sack_block)) {
+          fprintf(stderr, "parse_options: opt_len=%u so=%zu\n", opt_len, 
+                  sizeof(struct tcp_sack_opt) + sizeof(struct tcp_sack_block));
+          return -1;
+        }
+
+        opts->sack = (struct tcp_sack_opt *) (opt + off);
       }
     }
     off += opt_len;
