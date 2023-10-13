@@ -186,7 +186,7 @@ int tcp_open(struct app_context *ctx, uint64_t opaque, uint32_t remote_ip,
   conn->comp.notify_fd = -1;
   conn->comp.status = 0;
 
-  conn->sack_permitted = config.tcp_sack ? 1 : 0;
+  conn->flags |= config.tcp_sack ? NICIF_CONN_SACK : 0;
 
   /* resolve IP to mac */
   ret = routing_resolve(&conn->comp, remote_ip, &conn->remote_mac);
@@ -568,7 +568,7 @@ static int conn_syn_sent_packet(struct connection *c, const struct pkt_tcp *p,
   c->syn_ts = f_beui32(opts->ts->ts_val);
 
   if (opts->sack_permitted == NULL) {
-    c->sack_permitted = 0;
+    c->flags &= ~NICIF_CONN_SACK;
   }
 
   /* enable ECN if SYN-ACK confirms */
@@ -931,7 +931,7 @@ static void listener_accept(struct listener *l)
   c->fn_core = fn_core;
   c->flow_group = flow_group;
   c->remote_mac = 0;
-  memcpy(&c->remote_mac, &p->eth.src, ETH_ADDR_LEN);
+  // memcpy(&c->remote_mac, &p->eth.src, ETH_ADDR_LEN);
   c->remote_ip = f_beui32(p->ip.src);
   c->local_ip = config.ip;
   c->remote_port = f_beui16(p->tcp.src);
@@ -941,7 +941,7 @@ static void listener_accept(struct listener *l)
   c->local_seq = 1; /* TODO: generate random */
   c->syn_ts = f_beui32(opts.ts->ts_val);
 
-  c->sack_permitted = config.tcp_sack && opts.sack_permitted ? 1 : 0;
+  c->flags |= config.tcp_sack && opts.sack_permitted ? NICIF_CONN_SACK : 0;
 
   /* check if ECN is offered */
   ecn_flags = TCPH_FLAGS(&p->tcp) & (TCP_ECE | TCP_CWR);
@@ -956,6 +956,10 @@ static void listener_accept(struct listener *l)
   c->comp.q = &conn_async_q;
   c->comp.notify_fd = -1;
   c->comp.status = 0;
+
+  /* resolve IP to mac */
+  ret = routing_resolve(&c->comp, c->remote_ip, &c->remote_mac);
+  assert(ret == 0);
 
   if (nicif_connection_add(c->db_id, c->remote_mac, c->local_ip, c->local_port,
         c->remote_ip, c->remote_port, c->rx_buf - (uint8_t *) tas_shm,
@@ -1081,7 +1085,7 @@ static inline int send_control(const struct connection *conn, uint16_t flags,
 {
   return send_control_raw(conn->remote_mac, conn->remote_ip, conn->remote_port,
       conn->local_port, conn->local_seq, conn->remote_seq, flags, ts_opt,
-      ts_echo, mss_opt, conn->sack_permitted);
+      ts_echo, mss_opt, conn->flags & NICIF_CONN_SACK);
 }
 
 static inline int send_reset(const struct pkt_tcp *p,

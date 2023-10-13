@@ -118,14 +118,15 @@ static int dump_flow(uint32_t flow_id)
   }
 
 #ifdef FLEXNIC_PL_OOO_RECV
-  char ooo_stats[FLEXNIC_PL_OOO_RECV_MAX_INTERVALS * 45 + 1];
+  char ooo_stats[FLEXNIC_PL_OOO_RECV_MAX_INTERVALS * 53 + 1];
+  ooo_stats[0] = '\0';
   int i;
   for(i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
-    char ooo_stats_tmp[46];
+    char ooo_stats_tmp[54];
     snprintf(ooo_stats_tmp,
-            46,
-            "  ooo_%d_start=%08x\n"
-            "  ooo_%d_len=%08x\n",
+            54,
+            "     ooo_%d_start=%08x\n"
+            "       ooo_%d_len=%08x\n",
             i, fs->rx_ooo_intervals[i].ooo_start,
             i, fs->rx_ooo_intervals[i].ooo_len);
     strcat(ooo_stats, ooo_stats_tmp);

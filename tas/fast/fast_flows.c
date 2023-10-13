@@ -691,46 +691,48 @@ unlock:
   /* if we need to send an ack, also send packet to TX pipeline to do so */
   if (trigger_ack) {
 #ifdef FLEXNIC_PL_OOO_RECV
-    uint32_t ooo_exists = 0;
-    if (first_sack_block < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
-      ooo_exists = 1;
-    } else {
-      for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
-        ooo_exists |= fs->rx_ooo_intervals[i].ooo_len;
-        if (ooo_exists) break;
-      }
-    }
-    uint8_t *opt = (uint8_t *) (p + 1);
-    uint64_t opt_len_remaining = 40 - (((uint8_t *) opts->ts - opt) + sizeof(*opts->ts));
-    if (ooo_exists && opt_len_remaining >= sizeof(struct tcp_sack_opt) + sizeof(struct tcp_sack_block) + 2) {
-      uint8_t *noops = (uint8_t *) opts->ts + sizeof(*opts->ts);
-      noops[0] = TCP_OPT_NO_OP;
-      noops[1] = TCP_OPT_NO_OP;
-      opt_len_remaining -= 2;
-      struct tcp_sack_opt *sack_opt = (struct tcp_sack_opt *) (noops + 2);
-      sack_opt->kind = TCP_OPT_SACK;
-      sack_opt->length = sizeof(struct tcp_sack_opt);
-      uint32_t blocks_index = 0;
+    if(fs->sack_permitted) {
+      uint32_t ooo_exists = 0;
       if (first_sack_block < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
-        sack_opt->blocks[blocks_index].left = t_beui32(fs->rx_ooo_intervals[i].ooo_start);
-        sack_opt->blocks[blocks_index].right = t_beui32(fs->rx_ooo_intervals[i].ooo_start + fs->rx_ooo_intervals[i].ooo_len);
-        blocks_index++;
-        opt_len_remaining -= sizeof(struct tcp_sack_block);
-        sack_opt->length += sizeof(struct tcp_sack_block);
-      }
-      for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
-        if (opt_len_remaining < sizeof(struct tcp_sack_block)) {
-          break;
+        ooo_exists = 1;
+      } else {
+        for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+          ooo_exists |= fs->rx_ooo_intervals[i].ooo_len;
+          if (ooo_exists) break;
         }
-        if (fs->rx_ooo_intervals[i].ooo_len > 0 && i != first_sack_block) {
+      }
+      uint8_t *opt = (uint8_t *) (p + 1);
+      uint64_t opt_len_remaining = 40 - (((uint8_t *) opts->ts - opt) + sizeof(*opts->ts));
+      if (ooo_exists && opt_len_remaining >= sizeof(struct tcp_sack_opt) + sizeof(struct tcp_sack_block) + 2) {
+        uint8_t *noops = (uint8_t *) opts->ts + sizeof(*opts->ts);
+        noops[0] = TCP_OPT_NO_OP;
+        noops[1] = TCP_OPT_NO_OP;
+        opt_len_remaining -= 2;
+        struct tcp_sack_opt *sack_opt = (struct tcp_sack_opt *) (noops + 2);
+        sack_opt->kind = TCP_OPT_SACK;
+        sack_opt->length = sizeof(struct tcp_sack_opt);
+        uint32_t blocks_index = 0;
+        if (first_sack_block < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
           sack_opt->blocks[blocks_index].left = t_beui32(fs->rx_ooo_intervals[i].ooo_start);
           sack_opt->blocks[blocks_index].right = t_beui32(fs->rx_ooo_intervals[i].ooo_start + fs->rx_ooo_intervals[i].ooo_len);
           blocks_index++;
           opt_len_remaining -= sizeof(struct tcp_sack_block);
           sack_opt->length += sizeof(struct tcp_sack_block);
         }
+        for (i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+          if (opt_len_remaining < sizeof(struct tcp_sack_block)) {
+            break;
+          }
+          if (fs->rx_ooo_intervals[i].ooo_len > 0 && i != first_sack_block) {
+            sack_opt->blocks[blocks_index].left = t_beui32(fs->rx_ooo_intervals[i].ooo_start);
+            sack_opt->blocks[blocks_index].right = t_beui32(fs->rx_ooo_intervals[i].ooo_start + fs->rx_ooo_intervals[i].ooo_len);
+            blocks_index++;
+            opt_len_remaining -= sizeof(struct tcp_sack_block);
+            sack_opt->length += sizeof(struct tcp_sack_block);
+          }
+        }
+        TCPH_HDRLEN_SET(&p->tcp, TCPH_HDRLEN(&p->tcp) + ((sack_opt->length + 2) / 4));
       }
-      TCPH_HDRLEN_SET(&p->tcp, TCPH_HDRLEN(&p->tcp) + ((sack_opt->length + 2) / 4));
     }
 #endif
     flow_tx_ack(ctx, fs->tx_next_seq, fs->rx_next_seq, fs->rx_avail,

@@ -72,6 +72,38 @@ int arp_init(void)
   mac = 0;
   memcpy(&mac, &eth_addr, ETH_ADDR_LEN);
 
+  if (config.ip == 3232238362 || config.ip == 3232238357) {
+    struct arp_entry *other = malloc(sizeof(struct arp_entry));
+    lb->next = other;
+    other->prev = lb;
+    other->status = 0;
+    other->compl = NULL;
+
+    if (config.ip == 3232238362) {
+      other->ip = 3232238357;
+      other->mac[0] = 0x00;
+      other->mac[1] = 0x00;
+      other->mac[2] = 0x00;
+      other->mac[3] = 0x00;
+      other->mac[4] = 0x00;
+      other->mac[5] = 0x14;
+      uint64_t other_mac;
+      memcpy(&other_mac, &other->mac, ETH_ADDR_LEN);
+      printf("other ip: %x MAC: %lx\n", other->ip, other_mac);
+    } else if (config.ip == 3232238357) {
+      other->ip = 3232238362;
+      other->mac[0] = 0x00;
+      other->mac[1] = 0x00;
+      other->mac[2] = 0x00;
+      other->mac[3] = 0x00;
+      other->mac[4] = 0x00;
+      other->mac[5] = 0x10;
+      uint64_t other_mac;
+      memcpy(&other_mac, &other->mac, ETH_ADDR_LEN);
+      printf("other ip: %x MAC: %lx\n", other->ip, other_mac);
+    }
+  }
+
   if (!config.quiet)
     printf("host ip: %x MAC: %lx\n", config.ip, mac);
 

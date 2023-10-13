@@ -112,6 +112,8 @@ int nicif_appctx_add(uint16_t appid, uint32_t db, uint64_t *rxq_base,
 enum nicif_connection_flags {
   /** Enable ECN for connection. */
   NICIF_CONN_ECN        = (1 <<  2),
+  /** Enable SACK for connection. */
+  NICIF_CONN_SACK       = (1 <<  3),
 };
 
 /**
@@ -476,8 +478,6 @@ struct connection {
     uint32_t local_seq;
     /** Timestamp received with SYN/SYN-ACK packet */
     uint32_t syn_ts;
-    /** SACK permitted (option received on SYN/SYN-ACK packet) */
-    uint32_t sack_permitted;
   /**@}*/
 
   /**

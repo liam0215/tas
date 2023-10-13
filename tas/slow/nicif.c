@@ -236,6 +236,8 @@ int nicif_connection_add(uint32_t db, uint64_t mac_remote, uint32_t ip_local,
   fs->tx_rate = rate;
   fs->rtt_est = 0;
 
+  fs->sack_permitted = flags & NICIF_CONN_SACK ? 1 : 0;
+
   /* write to empty entry first */
   MEM_BARRIER();
   hte[i].flow_hash = hash;

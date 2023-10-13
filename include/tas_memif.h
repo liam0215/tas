@@ -219,7 +219,7 @@ struct flextcp_pl_appctx {
 } __attribute__((packed));
 
 /** Enable out of order receive processing members */
-#define FLEXNIC_PL_OOO_RECV 0
+#define FLEXNIC_PL_OOO_RECV 1
 #define FLEXNIC_PL_OOO_RECV_MAX_INTERVALS 2
 
 struct flextcp_pl_ooo_interval {
@@ -271,6 +271,9 @@ struct flextcp_pl_flowst {
   uint16_t bump_seq;
 
   // 56
+
+  /** SACK permitted (option received on SYN/SYN-ACK packet) */
+  uint32_t sack_permitted;
 
   /********************************************************/
   /* read-write fields */
