@@ -139,6 +139,32 @@ int fast_flows_qman(struct dataplane_context *ctx, uint32_t queue,
     goto unlock;
   }
 
+  if (fs->sack_permitted) {
+    for (int i = 0; i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+      struct flextcp_pl_ooo_interval interval = fs->tx_ooo_intervals[i];
+      if (fs->tx_next_seq >= interval.ooo_start && fs->tx_next_seq < interval.ooo_start + interval.ooo_len) {
+        /* update tx flow state */
+        assert(interval.ooo_start + interval.ooo_len >= fs->tx_next_seq);
+        len = interval.ooo_start + interval.ooo_len - fs->tx_next_seq;
+        len = MIN(len, fs->tx_len - (fs->tx_avail + len) > fs->tx_len ? 0 : fs->tx_len - (fs->tx_avail + len));
+        fs->tx_next_pos += len;
+        fs->tx_sent += len;
+        fs->tx_next_seq += len;
+        fs->tx_avail = fs->tx_avail > len ? fs->tx_avail - len : 0;
+        while (fs->tx_next_pos >= fs->tx_len) {
+          fs->tx_next_pos -= fs->tx_len;
+        }
+        assert(fs->tx_next_pos < fs->tx_len);
+        if (fs->tx_next_seq >= interval.ooo_start + interval.ooo_len) {
+          interval.ooo_len = 0;
+        } else {
+          interval.ooo_start = fs->tx_next_seq;
+        }
+      }
+    }
+    len = 0;
+  }
+
   /* calculate how much is available to be sent */
   avail = tcp_txavail(fs, NULL);
 
@@ -388,6 +414,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
   if (LIKELY((TCPH_FLAGS(&p->tcp) & TCP_ACK) == TCP_ACK &&
       tcp_valid_rxack(fs, ack, &tx_bump) == 0))
   {
+    fs->rx_remote_avail = f_beui16(p->tcp.wnd);
     fs->cnt_rx_ack_bytes += tx_bump;
     if ((TCPH_FLAGS(&p->tcp) & TCP_ECE) == TCP_ECE) {
       fs->cnt_rx_ecn_bytes += tx_bump;
@@ -410,6 +437,14 @@ int fast_flows_packet(struct dataplane_context *ctx,
 #endif
     }
 
+    if(fs->sack_permitted && opts->sack != NULL) {
+      for(i = 0; i < opts->sack->length && i < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS; i++) {
+        struct tcp_sack_block interval = opts->sack->blocks[i];
+        fs->tx_ooo_intervals[i].ooo_start = f_beui32(interval.left);
+        fs->tx_ooo_intervals[i].ooo_len = f_beui32(interval.right) - f_beui32(interval.left);
+      }
+    }
+
     /* duplicate ack */
     if (UNLIKELY(tx_bump != 0)) {
       fs->rx_dupack_cnt = 0;
@@ -423,8 +458,11 @@ int fast_flows_packet(struct dataplane_context *ctx,
 #ifdef FLEXNIC_PL_OOO_RECV
   /* check if we should drop this segment */
   if (UNLIKELY(tcp_trim_rxbuf(fs, seq, payload_bytes, &trim_start, &trim_end) != 0)) {
+    // fprintf(stderr, "packet drop because outside of receive buffer\n");
     /* packet is completely outside of unused receive buffer */
+    // fprintf(stderr, "dropping packet with seq: %u\n", seq);
     trigger_ack = 1;
+    fs->rx_outside_rx_buf_cnt++;
     goto unlock;
   }
 
@@ -440,6 +478,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
 
     /* if there is no payload abort immediately */
     if (payload_bytes == 0) {
+      fs->rx_ooo_no_payload_cnt++;
       goto unlock;
     }
 
@@ -488,6 +527,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
       fs->rx_ooo_intervals[idx_end_merge].ooo_start = interval_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
       first_sack_block = idx_end_merge;
+      fs->rx_ooo_extend_ooo_region_cnt++;
     } else if (idx_start_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
       /* Expand start of interval at idx_start_merge to include the new packet */
       uint32_t idx_start_merge_region_end = fs->rx_ooo_intervals[idx_start_merge].ooo_start +
@@ -496,18 +536,21 @@ int fast_flows_packet(struct dataplane_context *ctx,
       fs->rx_ooo_intervals[idx_start_merge].ooo_start = seq;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
       first_sack_block = idx_start_merge;
+      fs->rx_ooo_extend_ooo_region_cnt++;
     } else if (idx_end_merge < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
       /* Expand end of interval at idx_end_merge to include the new packet */
       fs->rx_ooo_intervals[idx_end_merge].ooo_len = seq + payload_bytes - 
                                                     fs->rx_ooo_intervals[idx_end_merge].ooo_start;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
       first_sack_block = idx_end_merge;
+      fs->rx_ooo_extend_ooo_region_cnt++;
     } else if (idx_free_region < FLEXNIC_PL_OOO_RECV_MAX_INTERVALS) {
       /* Create new ooo interval at idx_free_region */
       fs->rx_ooo_intervals[idx_free_region].ooo_start = seq;
       fs->rx_ooo_intervals[idx_free_region].ooo_len = payload_bytes;
       flow_rx_seq_write(fs, seq, payload_bytes, payload);
       first_sack_block = idx_free_region;
+      fs->rx_ooo_new_ooo_region_cnt++;
     }
     goto unlock;
   }
@@ -545,8 +588,6 @@ int fast_flows_packet(struct dataplane_context *ctx,
     }
   }
 
-  fs->rx_remote_avail = f_beui16(p->tcp.wnd);
-
   /* make sure we don't receive anymore payload after FIN */
   if ((fs->rx_base_sp & FLEXNIC_PL_FLOWST_RXFIN) == FLEXNIC_PL_FLOWST_RXFIN &&
       payload_bytes > 0)
@@ -557,6 +598,7 @@ int fast_flows_packet(struct dataplane_context *ctx,
 
   /* if there is payload, dma it to the receive buffer */
   if (payload_bytes > 0) {
+    // fs->rx_dma_payload_cnt++;
     flow_rx_write(fs, fs->rx_next_pos, payload_bytes, payload);
 
     rx_bump = payload_bytes;
@@ -593,9 +635,9 @@ int fast_flows_packet(struct dataplane_context *ctx,
               payload_bytes, fs->rx_next_seq);*/
           if (interval->ooo_len > 0 && interval->ooo_start == fs->rx_next_seq) {
             /* yay, we caught up, make continuous and drop OOO interval */
-            /*fprintf(stderr, "caught up with ooo buffer (%p start=%u len=%u)\n",
-                fs, interval->ooo_start, interval->ooo_len);*/
-
+            // fprintf(stderr, "caught up with ooo buffer (%p start=%u len=%u)\n",
+            //     fs, interval->ooo_start, interval->ooo_len);
+            fs->rx_ooo_fast_forward_cnt++;
             rx_bump += interval->ooo_len;
             fs->rx_avail -= interval->ooo_len;
             fs->rx_next_pos += interval->ooo_len;
@@ -944,6 +986,7 @@ static void flow_tx_read(struct flextcp_pl_flowst *fs, uint32_t pos,
   if (LIKELY(pos + len <= fs->tx_len)) {
     dma_read(fs->tx_base + pos, len, dst);
   } else {
+    assert(pos < fs->tx_len);
     part = fs->tx_len - pos;
     dma_read(fs->tx_base + pos, part, dst);
     dma_read(fs->tx_base, len - part, (uint8_t *) dst + part);
@@ -1088,6 +1131,22 @@ static void flow_tx_ack(struct dataplane_context *ctx, uint32_t seq,
   port = p->tcp.src;
   p->tcp.src = p->tcp.dest;
   p->tcp.dest = port;
+
+  if (f_beui32(ip) == 3232238357) {
+    p->eth.dest.addr[0] = 0x00;
+    p->eth.dest.addr[1] = 0x00;
+    p->eth.dest.addr[2] = 0x00;
+    p->eth.dest.addr[3] = 0x00;
+    p->eth.dest.addr[4] = 0x00;
+    p->eth.dest.addr[5] = 0x14;
+  } else if (f_beui32(ip) == 3232238362) {
+    p->eth.dest.addr[0] = 0x00;
+    p->eth.dest.addr[1] = 0x00;
+    p->eth.dest.addr[2] = 0x00;
+    p->eth.dest.addr[3] = 0x00;
+    p->eth.dest.addr[4] = 0x00;
+    p->eth.dest.addr[5] = 0x10;
+  }
 
   hdrlen = sizeof(*p) + (TCPH_HDRLEN(&p->tcp) - 5) * 4;
 

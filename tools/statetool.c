@@ -159,6 +159,13 @@ static int dump_flow(uint32_t flow_id)
          "      dupack_cnt=%08x\n"
 #ifdef FLEXNIC_PL_OOO_RECV
          "%s"
+         "     new_ooo_cnt=%08x\n"
+         "    in_order_cnt=%08x\n"
+         "  extend_ooo_cnt=%08x\n"
+         "ooo_no_pload_cnt=%08x\n"
+         "  out_rx_buf_cnt=%08x\n"
+         "fast_forward_cnt=%08x\n"
+         " dma_payload_cnt=%08x\n"
 #endif
          "  }\n"
          "  tx {\n"
@@ -190,6 +197,13 @@ static int dump_flow(uint32_t flow_id)
       fs->rx_remote_avail, fs->rx_next_pos, fs->rx_next_seq, fs->rx_dupack_cnt,
 #ifdef FLEXNIC_PL_OOO_RECV
       ooo_stats,
+      fs->rx_ooo_new_ooo_region_cnt,
+      fs->rx_in_order_cnt,
+      fs->rx_ooo_extend_ooo_region_cnt,
+      fs->rx_ooo_no_payload_cnt,
+      fs->rx_outside_rx_buf_cnt,
+      fs->rx_ooo_fast_forward_cnt,
+      fs->rx_dma_payload_cnt,
 #endif
       fs->tx_base, fs->tx_len, fs->tx_avail, fs->tx_sent, fs->tx_next_pos,
       fs->tx_next_seq, fs->tx_next_ts,

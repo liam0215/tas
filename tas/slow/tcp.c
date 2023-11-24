@@ -55,8 +55,8 @@
 
 #define CONN_DEBUG(c, f, x...) do { } while (0)
 #define CONN_DEBUG0(c, f) do { } while (0)
-/*#define CONN_DEBUG(c, f, x...) fprintf(stderr, "conn(%p): " f, c, x)
-#define CONN_DEBUG0(c, f, x...) fprintf(stderr, "conn(%p): " f, c)*/
+// #define CONN_DEBUG(c, f, x...) fprintf(stderr, "conn(%p): " f, c, x)
+// #define CONN_DEBUG0(c, f, x...) fprintf(stderr, "conn(%p): " f, c)
 
 struct listen_multi {
   size_t num;
@@ -931,7 +931,7 @@ static void listener_accept(struct listener *l)
   c->fn_core = fn_core;
   c->flow_group = flow_group;
   c->remote_mac = 0;
-  // memcpy(&c->remote_mac, &p->eth.src, ETH_ADDR_LEN);
+  memcpy(&c->remote_mac, &p->eth.src, ETH_ADDR_LEN);
   c->remote_ip = f_beui32(p->ip.src);
   c->local_ip = config.ip;
   c->remote_port = f_beui16(p->tcp.src);
