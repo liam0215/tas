@@ -586,7 +586,7 @@ static int conn_syn_sent_packet(struct connection *c, const struct pkt_tcp *p,
         c->remote_ip, c->remote_port, c->rx_buf - (uint8_t *) tas_shm,
         c->rx_len, c->tx_buf - (uint8_t *) tas_shm, c->tx_len,
         c->remote_seq, c->local_seq, c->opaque, c->flags, c->cc_rate,
-        c->fn_core, c->flow_group, &c->flow_id)
+        c->fn_core, c->flow_group, &c->flow_id, f_beui16(p->tcp.wnd))
       != 0)
   {
     fprintf(stderr, "conn_syn_sent_packet: nicif_connection_add failed\n");
@@ -965,7 +965,7 @@ static void listener_accept(struct listener *l)
         c->remote_ip, c->remote_port, c->rx_buf - (uint8_t *) tas_shm,
         c->rx_len, c->tx_buf - (uint8_t *) tas_shm, c->tx_len,
         c->remote_seq, c->local_seq + 1, c->opaque, c->flags, c->cc_rate,
-        c->fn_core, c->flow_group, &c->flow_id)
+        c->fn_core, c->flow_group, &c->flow_id, f_beui16(p->tcp.wnd))
       != 0)
   {
     fprintf(stderr, "listener_packet: nicif_connection_add failed\n");

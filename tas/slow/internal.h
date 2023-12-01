@@ -145,7 +145,7 @@ int nicif_connection_add(uint32_t db, uint64_t mac_remote, uint32_t ip_local,
     uint64_t rx_base, uint32_t rx_len, uint64_t tx_base, uint32_t tx_len,
     uint32_t remote_seq, uint32_t local_seq, uint64_t app_opaque,
     uint32_t flags, uint32_t rate, uint32_t fn_core, uint16_t flow_group,
-    uint32_t *pf_id);
+    uint32_t *pf_id, uint16_t wnd);
 
 /**
  * Disable connection fast path (mark as sp'd and remove from hash table).
